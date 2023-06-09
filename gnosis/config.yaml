@@ -1,0 +1,38 @@
+chain : gnosis
+datadir : /home/erigon/.local/share/erigon
+externalcl: true
+# port : 30303
+# private.api.addr : 127.0.0.1:9090 # for modular components connections
+# rpc.returndata.limit: 1000000
+# rpc.accessList : rules.json
+
+# http : true
+# http.compression : true 
+# http.port : 8545
+# http.addr : 0.0.0.0
+# http.vhosts : "*"
+# http.corsdomain : "*"
+http.api : [eth, erigon, web3, debug, net, trace]
+
+# ws : false
+# ws.compression : false
+
+metrics  : true
+metrics.addr : 0.0.0.0
+# metrics.port : 6060
+
+pprof : true
+pprof.addr : 0.0.0.0 
+pprof.port : 6061
+
+# authrpc.port : 8551 # for consensus layer communication
+authrpc.addr : 0.0.0.0
+authrpc.jwtsecret : /home/erigon/.local/share/erigon/jwt.hex
+authrpc.vhosts : "*"
+
+# snapshots : true
+# snap.keepblocks : true
+
+# torrent.port : 42069
+torrent.download.rate : 20mb
+# torrent.upload.rate : 16mb

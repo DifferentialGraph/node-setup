@@ -1,0 +1,27 @@
+version: '3.9'
+
+volumes:
+  archive-data:
+
+services:
+  polygon:
+    image: thorax/erigon:v2.31.0
+    volumes:
+      - archive-data:/datadir
+    ports:
+      - "40303:40303"
+      - "40303:40303/udp"
+    command: >
+      erigon
+      --chain=bor-mainnet \
+      --bor.heimdall=https://heimdall.stakesystems.io \
+      --datadir=${ERIGON_HOME} \
+      --http --http.addr="0.0.0.0" --http.port="8545" --http.compression --http.vhosts="*" --http.corsdomain="*" --http.api="eth,debug,net,trace,web3,erigon,bor" \
+      --ws --ws.compression \
+      --snap.keepblocks=true \
+      --snapshots="true" \
+      --torrent.upload.rate="1250mb" --torrent.download.rate="1250mb" \
+      --metrics --metrics.addr=0.0.0.0 --metrics.port=6060 \
+      --pprof --pprof.addr=0.0.0.0 --pprof.port=6061
+    stop_grace_period: 1m
+    restart: unless-stopped

@@ -1,0 +1,60 @@
+version: '3.9'
+
+volumes:
+  nitro-data:
+  classic-data:
+    external: true
+    name: ${COMPOSE_PROJECT_NAME}_classic-data
+
+networks:
+  arbitrum:
+    name: arbitrum
+
+services:
+  arbitrum-nitro:
+    image: 'offchainlabs/nitro-node:v2.0.10-rc.1-687c381-slim-amd64'
+    container_name: ${COMPOSE_PROJECT_NAME}-nitro
+    restart: unless-stopped
+    stop_grace_period: 30s
+    user: root
+    networks:
+      - arbitrum
+    volumes:
+      - nitro-data:/arbitrum-node
+    expose:
+      - 8547 # http
+      - 8548 # ws
+    command:
+      - --init.url=https://snapshot.arbitrum.io/mainnet/nitro.tar
+      - --node.caching.archive
+      - --persistent.chain=/arbitrum-node/data/
+      - --persistent.global-config=/arbitrum-node/
+      - --node.rpc.classic-redirect=http://${COMPOSE_PROJECT_NAME}-classic:8547/
+      - --l1.url=${ETHEREUM_RPC}
+      - --l2.chain-id=42161
+      - --http.api=net,web3,eth,debug 
+      - --http.corsdomain=* 
+      - --http.addr=0.0.0.0 
+      - --http.vhosts=*   
+
+  arbitrum-classic:
+    image: 'offchainlabs/arb-node:v1.4.5-e97c1a4'
+    container_name: ${COMPOSE_PROJECT_NAME}-classic
+    restart: unless-stopped
+    stop_grace_period: 30s
+    user: root
+    volumes:
+      - classic-data:/root/.arbitrum/mainnet
+    expose:
+      - 8547 # http
+      - 8548 # ws
+    command:
+      - --l1.url=${ETHEREUM_RPC}
+      - --l2.disable-upstream
+      - --node.chain-id=42161
+      - --node.rpc.tracing.enable
+      - --node.rpc.tracing.namespace=trace
+      - --core.checkpoint-pruning-mode=off
+      - --node.cache.allow-slow-lookup
+      - --core.checkpoint-gas-frequency=156250000
+      - --node.rpc.addr=0.0.0.0 

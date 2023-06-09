@@ -1,0 +1,63 @@
+version: '3.9'
+
+volumes:
+  config:
+    external: true
+    name: ${COMPOSE_PROJECT_NAME}_config
+  data:
+  lighthouse-data:
+
+networks:
+  ethereum:
+    name: ethereum
+
+services:
+  ethereum:
+    image: thorax/erigon:v2.43.1
+    container_name: ${COMPOSE_PROJECT_NAME}
+    restart: unless-stopped
+    stop_grace_period: 1m
+    networks:
+      - ethereum
+    expose:
+      - 8551/tcp # authrpc
+    ports:
+      - 30303:30303/tcp # eth/66 peering
+      - 30303:30303/udp # eth/66 peering
+      - 30304:30304/tcp # eth/67 peering
+      - 30304:30304/udp # eth/67 peering
+      - 42069:42069/tcp # snap sync
+      - 42069:42069/udp # snap sync
+      - 127.0.0.1:8545:8545/tcp # http
+    volumes:
+      - config:/home/erigon/.config
+      - data:/home/erigon/.local/share/erigon
+    command: >
+      --config /home/erigon/.config/config.yaml
+      
+  ethereum-lighthouse:
+    image: sigp/lighthouse:v4.2.0-modern
+    container_name: ${COMPOSE_PROJECT_NAME}-lighthouse
+    restart: unless-stopped
+    stop_grace_period: 1m
+    networks:
+      - ethereum
+    ports:
+      - 9000:9000/tcp # p2p
+      - 9000:9000/udp # p2p
+    expose:
+      - 5052 # http
+    volumes_from:
+      - ethereum
+    volumes:
+      - lighthouse-data:/root/.lighthouse
+    command: >
+      lighthouse bn
+      --network mainnet
+      --port=9000
+      --http
+      --http-address 0.0.0.0
+      --execution-endpoint http://${COMPOSE_PROJECT_NAME}:8551
+      --execution-jwt /home/erigon/.local/share/erigon/jwt.hex
+      --checkpoint-sync-url https://mainnet.checkpoint.sigp.io
+    # --checkpoint-sync-url https://sync.invis.tools

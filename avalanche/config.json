@@ -1,0 +1,22 @@
+{
+    "log-level": "debug",
+    "snowman-api-enabled": false,
+    "coreth-admin-api-enabled": false,
+    "local-txs-enabled": true,
+    "pruning-enabled": false,
+    "state-sync-enabled": false,
+    "eth-apis": [
+        "internal-eth",
+        "internal-blockchain",
+        "internal-transaction",
+        "internal-tx-pool",
+        "internal-account",
+        "internal-personal",
+        "debug-tracer",
+        "web3",
+        "eth",
+        "eth-filter",
+        "admin",
+        "net"
+    ]
+}

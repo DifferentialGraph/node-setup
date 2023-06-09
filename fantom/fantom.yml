@@ -1,0 +1,34 @@
+version: "3.9"
+
+volumes:
+  # fantom:
+  fantom-archive:
+
+services:
+  fantom-archive:
+    build:
+      args:
+        VERSION: release/txtracing/1.1.2-rc.6
+      context: ./
+      dockerfile: Dockerfile
+    container_name: ${COMPOSE_PROJECT_NAME}-archive
+    environment:
+      - SNAPSHOT_URL_DISABLED=https://download.fantom.network/opera_5may22.tgz
+    volumes:
+      - "fantom-archive:/datadir"
+    ports:
+      - 18545:18545
+    restart: unless-stopped
+
+  # fantom:
+  #   build:
+  #     args:
+  #       VERSION: release/1.1.0-rc.4
+  #     context: ../fantom
+  #     dockerfile: Dockerfile
+  #   environment:
+  #     - SNAPSHOT_URL=https://download.fantom.network/opera_5may22.tgz
+  #   volumes:
+  #     - "fantom:/datadir"
+  #   port:
+  #     - 18545:18545

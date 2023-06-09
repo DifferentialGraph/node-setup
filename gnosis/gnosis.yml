@@ -1,0 +1,79 @@
+version: '3.9'
+
+volumes:
+  config:
+    external: true
+    name: ${COMPOSE_PROJECT_NAME}_config
+  data:
+  lighthouse-data:
+
+networks:
+  gnosis:
+    name: gnosis
+
+services:
+  gnosis:
+    image: thorax/erigon:v2.42.0
+    container_name: ${COMPOSE_PROJECT_NAME}
+    restart: unless-stopped
+    stop_grace_period: 1m
+    networks:
+      - gnosis
+    volumes:
+      - config:/home/erigon/.config
+      - data:/home/erigon/.local/share/erigon
+    ports:
+      - 30313:30303/tcp # eth/66 peering
+      - 30313:30303/udp # eth/66 peering
+      - 30314:30304/tcp # eth/67 peering
+      - 30314:30304/udp # eth/67 peering
+      - 42079:42069/tcp # snap sync
+      - 42079:42069/udp # snap sync
+      - 4010:4000/udp # sentinel peering
+      - 4011:4001/tcp # sentinel peering
+    expose:
+      - 8545/tcp # http
+      - 8551/tcp # authrpc
+    command: >
+      --config /home/erigon/.config/config.yaml
+
+  gnosis-lighthouse:
+    image: sigp/lighthouse:v4.0.1-modern
+    container_name: ${COMPOSE_PROJECT_NAME}-lighthouse
+    restart: unless-stopped
+    stop_grace_period: 1m
+    networks:
+      - gnosis
+    ports:
+      - 9010:9000/tcp # p2p
+      - 9010:9000/udp # p2p
+      - 5064:5054/tcp # metrics
+    expose:
+      - 4000 # http
+    volumes_from:
+      - gnosis
+    volumes:
+      - lighthouse-data:/data
+      - /etc/timezone:/etc/timezone:ro
+      - /etc/localtime:/etc/localtime:ro
+    command: >
+      lighthouse beacon_node
+      --network=gnosis
+      --disable-upnp
+      --datadir=/data
+      --port=9000
+      --http
+      --http-address=0.0.0.0
+      --http-port=4000
+      --target-peers=50
+      --execution-endpoint=http://gnosis:8551
+      --execution-jwt /home/erigon/.local/share/erigon/jwt.hex
+      --debug-level=info
+      --validator-monitor-auto
+      --subscribe-all-subnets
+      --import-all-attestations
+      --metrics
+      --metrics-port=5054
+      --metrics-address=0.0.0.0
+      --checkpoint-sync-url=https://checkpoint.gnosischain.com/
+      

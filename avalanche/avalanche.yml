@@ -1,0 +1,38 @@
+version: '3.9'
+
+volumes:
+  data:
+  config:
+    external: true
+    name: ${COMPOSE_PROJECT_NAME}_config
+  c-config:
+    external: true
+    name: ${COMPOSE_PROJECT_NAME}_c-config
+
+networks:
+  avalanche:
+    name: avalanche
+
+services:
+  avalanche:
+    image: avaplatform/avalanchego:v1.9.16
+    container_name: ${COMPOSE_PROJECT_NAME}
+    restart: unless-stopped
+    stop_grace_period: 1m
+    networks:
+      - avalanche
+    ports:
+      - 9650:9650
+      - 9651:9651
+    volumes:
+      - data:/root/.avalanchego
+      - config:/root/.avalanchego/configs/
+      - c-config:/root/.avalanchego/configs/chains/C
+    command: 
+      [
+        "/avalanchego/build/avalanchego",
+        "--db-dir=/root/.avalanchego",
+        # "--api-admin-enabled=true",
+        "--http-host="
+       # "--bootstrap-retry-enabled"
+      ]
