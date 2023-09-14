@@ -1,6 +1,6 @@
 chain : mainnet
 datadir : /home/erigon/.local/share/erigon
-externalcl: true
+internalcl: false
 port : 30303
 private.api.addr : localhost:9090
 rpc.returndata.limit: 1000000

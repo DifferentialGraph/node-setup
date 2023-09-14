@@ -1,6 +1,6 @@
 chain : gnosis
 datadir : /home/erigon/.local/share/erigon
-externalcl: true
+internalcl: false
 # port : 30303
 # private.api.addr : 127.0.0.1:9090 # for modular components connections
 # rpc.returndata.limit: 1000000
