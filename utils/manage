@@ -1,43 +1,51 @@
 #!/bin/bash
 
 node-start() {
-    case $1 in
-        "ethereum")
-            if [ "$(docker volume ls -f name=ethereum_config | awk '{print $NF}' | grep -E '^'ethereum_config'$')" ]; then
-                rm -rf /var/lib/docker/volumes/ethereum_config/_data/config.yaml
-            else
-                docker volume create ethereum_config
-            fi
-            cp /root/node-setup/ethereum/config.yaml /var/lib/docker/volumes/ethereum_config/_data/
-            ;;
-        "gnosis")
-            if [ "$(docker volume ls -f name=gnosis_config | awk '{print $NF}' | grep -E '^'gnosis_config'$')" ]; then
-                rm -rf /var/lib/docker/volumes/gnosis_config/_data/config.yaml
-            else
-                docker volume create gnosis_config
-            fi
-            cp /root/node-setup/gnosis/config.yaml /var/lib/docker/volumes/gnosis_config/_data/
-            ;;
-        *)
-            echo "Chain not supported yet!"
-            return
-            ;;
-    esac
+    if [ -f "$NODE_DIR/$1/$1.yml" ]; then
+        case $1 in
+            "ethereum")
+                if [ "$(docker volume ls -f name=ethereum_config | awk '{print $NF}' | grep -E '^'ethereum_config'$')" ]; then
+                    rm -rf /var/lib/docker/volumes/ethereum_config/_data/config.yaml
+                else
+                    docker volume create ethereum_config
+                fi
+                cp /root/node-setup/ethereum/config.yaml /var/lib/docker/volumes/ethereum_config/_data/
+                ;;
+            "gnosis")
+                if [ "$(docker volume ls -f name=gnosis_config | awk '{print $NF}' | grep -E '^'gnosis_config'$')" ]; then
+                    rm -rf /var/lib/docker/volumes/gnosis_config/_data/config.yaml
+                else
+                    docker volume create gnosis_config
+                fi
+                cp /root/node-setup/gnosis/config.yaml /var/lib/docker/volumes/gnosis_config/_data/
+                ;;
+            *)
+                echo "Chain not supported yet!"
+                return
+                ;;
+        esac
 
-    cd /root/node-setup &&
-    if [ -z "$2" ]; then
-        COMPOSE_PROJECT_NAME=$1 COMPOSE_FILE=$1/$1.yml docker compose --env-file .env up -d --remove-orphans --build
+        COMPOSE_PROJECT_NAME=$1 COMPOSE_FILE=$NODE_DIR/$1/$1.yml docker compose pull
+
+        if [ -z "$2" ]; then
+            COMPOSE_PROJECT_NAME=$1 COMPOSE_FILE=$NODE_DIR/$1/$1.yml docker compose --env-file $NODE_DIR/.env up -d --remove-orphans --build
+        else
+            COMPOSE_PROJECT_NAME=$1 COMPOSE_FILE=$NODE_DIR/$1/$1.yml docker compose --env-file $NODE_DIR/.env.$2 up -d --remove-orphans --build
+        fi
     else
-        COMPOSE_PROJECT_NAME=$1 COMPOSE_FILE=$1/$1.yml docker compose --env-file .env.$2 up -d --remove-orphans --build
+        echo "$1 configuration file not found."
     fi
 }
 
 node-stop() {
-    cd /root/node-setup && COMPOSE_PROJECT_NAME=$1 COMPOSE_FILE=$1/$1.yml docker compose stop
+    if [ -f "$NODE_DIR/$1/$1.yml" ]; then
+        COMPOSE_PROJECT_NAME=$1 COMPOSE_FILE=$NODE_DIR/$1/$1.yml docker compose stop
+    else
+        echo "$1 configuration file not found."
+    fi
 }
 
 node-restart() {
-    cd /root/node-setup && COMPOSE_PROJECT_NAME=$1 COMPOSE_FILE=$1/$1.yml docker compose pull
     node-stop $1
     node-start $1
 }
@@ -88,8 +96,6 @@ node-monitor() {
         *)
             echo "Chain not supported!"
             return
-            # tmux kill-session -t $1
-            # exit 1
         ;;
         esac
     fi
