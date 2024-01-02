@@ -32,4 +32,4 @@ metrics.port : 6060
 
 pprof : true
 pprof.addr : 0.0.0.0
-pprof.port : 6061
+pprof.port : 6070
