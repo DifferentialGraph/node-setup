@@ -43,3 +43,14 @@ if [ -z "$2" ]; then
 else
     COMPOSE_PROJECT_NAME=$1 COMPOSE_FILE=$1/$1.yml docker compose --env-file .env.$2 up -d --remove-orphans --build
 fi
+
+# export to .bashrc if needed
+if ! grep -q "#node-setup" ~/.bashrc; then
+    echo "Modifying .bashrc ..."
+    DIR="$( cd "$( dirname -- $0 )" && pwd )"
+    echo -e "\n" >> ~/.bashrc
+    echo "#node-setup" >> ~/.bashrc
+    echo "export NODE_DIR=$DIR" >> ~/.bashrc
+    echo 'source $NODE_DIR/utils/manage' >> ~/.bashrc
+    source ~/.bashrc
+fi
