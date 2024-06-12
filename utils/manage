@@ -9,7 +9,7 @@ node-start() {
                 else
                     docker volume create ethereum_config
                 fi
-                cp /root/node-setup/ethereum/config.yaml /var/lib/docker/volumes/ethereum_config/_data/
+                cp $NODE_DIR/ethereum/config.yaml /var/lib/docker/volumes/ethereum_config/_data/
                 ;;
             "gnosis")
                 if [ "$(docker volume ls -f name=gnosis_config | awk '{print $NF}' | grep -E '^'gnosis_config'$')" ]; then
@@ -17,7 +17,7 @@ node-start() {
                 else
                     docker volume create gnosis_config
                 fi
-                cp /root/node-setup/gnosis/config.yaml /var/lib/docker/volumes/gnosis_config/_data/
+                cp $NODE_DIR/gnosis/config.yaml /var/lib/docker/volumes/gnosis_config/_data/
                 ;;
             *)
                 echo "Chain not supported yet!"

@@ -12,7 +12,7 @@ networks:
 
 services:
   arbitrum-nitro:
-    image: 'offchainlabs/nitro-node:v2.0.10-rc.1-687c381-slim-amd64'
+    image: 'offchainlabs/nitro-node:v2.3.2-064fa11'
     container_name: ${COMPOSE_PROJECT_NAME}-nitro
     restart: unless-stopped
     stop_grace_period: 30s

@@ -1,7 +1,9 @@
 # Node Setup
-Automatically setup a bunch of blockchains.
+Automatically setup blockchains full/archive node.
 
 ## Ethereum
+https://github.com/ledgerwatch/erigon
+
 | Host  | Port  | Protocol  |        Purpose         | Expose  |
 |:-----:|:-----:|:---------:|:----------------------:|:-------:|
 | 30303 | 30303 | TCP & UDP |     eth/66 peering     | Public  |
@@ -13,9 +15,11 @@ Automatically setup a bunch of blockchains.
 | 8551  | 8551  |    TCP    | Engine API (JWT auth)  | Private |
 
 
-- Erigon: https://github.com/ledgerwatch/erigon
+## Arbitrum-One
+https://docs.arbitrum.io/node-running/how-tos/running-an-archive-node
 
 ## Gnosis
+https://docs.gnosischain.com/node/
 
 ### `execution` layer
 | Host           | Port  | Protocol  |        Purpose              | Expose  |
