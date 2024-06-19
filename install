@@ -1,0 +1,55 @@
+#!/bin/bash
+
+case $1 in
+    "mainnet")
+        docker volume create mainnet_config
+        cp mainnet/config.yaml /var/lib/docker/volumes/mainnet_config/_data/
+        ;;
+    "gnosis")
+        docker volume create gnosis_config
+        cp gnosis/config.yaml /var/lib/docker/volumes/gnosis_config/_data/
+        ;;
+    "matic")
+        docker volume create matic_config
+        cp matic/config.yaml /var/lib/docker/volumes/matic_config/_data/
+        ;;
+    "arbitrum-one")
+        curl https://snapshot.arbitrum.foundation/arb1/classic-archive.tar | tar -xv -C  /data/arbitrum-one/classic
+        # docker network connect mainnet arbitrum-one-nitro
+        # docker network connect mainnet arbitrum-one-classic
+        ;;
+    "avalanche")
+        # config
+        docker volume create avalanche_config
+        cp avalanche/node.json /var/lib/docker/volumes/avalanche_config/_data/
+        # C chain config
+        docker volume create avalanche-c_config
+        cp avalanche/config.json /var/lib/docker/volumes/avalanche-c_config/_data/
+        ;;
+    "optimism")
+        cp optimism/scripts/* /data/optimism/scripts/
+        ;;
+    "celo")
+        apt install libusb-1.0-0-dev libudev-dev
+        npm install -g @celo/celocli
+        ;;
+    "fantom")
+        ;;
+    *)
+        echo "Chain not supported yet!"
+        exit
+        ;;
+esac
+
+COMPOSE_PROJECT_NAME=$1 COMPOSE_FILE=$1/$1.yml docker compose --env-file .env up -d --remove-orphans --build
+
+# export to .bashrc if needed
+if ! grep -q "#node-setup" ~/.bashrc; then
+    echo "Modifying .bashrc ..."
+    DIR="$( cd "$( dirname -- $0 )" && pwd )"
+    echo -e "\n" >> ~/.bashrc
+    echo "#node-setup" >> ~/.bashrc
+    echo "export NODE_DIR=$DIR" >> ~/.bashrc
+    echo 'source $NODE_DIR/utils/manage' >> ~/.bashrc
+    source ~/.bashrc
+fi

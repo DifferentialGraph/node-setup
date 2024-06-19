@@ -1,51 +1,110 @@
-version: '3.9'
-
-volumes:
-  dtl:
-  geth:
-
-x-logging: &logging
-  logging:
-    driver: json-file
-    options:
-      max-size: 10m
-      max-file: "3"
+networks:
+  optimism:
+    name: optimism
+  mainnet:
+    external: true
+    name: mainnet
 
 services:
-  dtl:
-    image: ethereumoptimism/data-transport-layer:${IMAGE_TAG__DTL:-latest}
-    restart: unless-stopped
-    entrypoint: /scripts/dtl-start.sh
-    environment:
-      SYNC_SOURCE: l1
-      DATA_TRANSPORT_LAYER__RPC_ENDPOINT: ${ETHEREUM_RPC}
-    env_file:
-      - ./envs/dtl.env
-    volumes:
-      - dtl:/db
-      - ./scripts/:/scripts/
-    ports:
-      - ${PORT__DTL:-7878}:7878
-    <<: *logging
-
   l2geth:
-    image: ethereumoptimism/l2geth:${IMAGE_TAG__L2GETH:-latest}
-    restart: unless-stopped
+    image: ethereumoptimism/l2geth:${L2GETH_TAG:-latest}
+    container_name: ${COMPOSE_PROJECT_NAME}-l2geth
+    restart: on-failure
     stop_grace_period: 5m
     entrypoint: 
       - /bin/sh
       - -c
-      - "/scripts/l2geth-init.sh && /scripts/l2geth-start.sh"
-    environment:
-      SYNC_SOURCE: l1
-      NODE_TYPE: archive
+      - "/scripts/init-l2geth.sh && /scripts/start-l2geth.sh"
     env_file:
+      - ../.env
       - ./envs/l2geth.env
-    ports:
-      - ${PORT__L2GETH_HTTP:-9991}:9991 # 8545
-      - ${PORT__L2GETH_WS:-9992}:9992 #8546
     volumes:
-      # - geth:/geth
-      - /home/optimism-data:/geth
-      - ./scripts/:/scripts/
-    <<: *logging
+      - /data/optimism/l2geth:/geth
+      - /data/optimism/scripts/:/scripts/
+    ports:
+      - 127.0.0.1:9991:8545 # http
+      - 127.0.0.1:9992:8546 # ws
+    networks:
+      - optimism
+      - mainnet
+
+  op-geth:
+    image: us-docker.pkg.dev/oplabs-tools-artifacts/images/op-geth:${OP_GETH_TAG:-v1.101315.1}
+    container_name: ${COMPOSE_PROJECT_NAME}-op-geth
+    restart: unless-stopped
+    stop_grace_period: 5m
+    entrypoint: /scripts/start-op-geth.sh
+    env_file:
+      - ../.env
+      - ./envs/op-geth.env
+    volumes:
+      - /data/optimism/config:/chainconfig
+      - /data/optimism/scripts/:/scripts
+      - /data/optimism/shared:/shared
+      - /data/optimism/op_geth:/geth
+    ports:
+      - 39393:39393/udp # p2p
+      - 39393:39393/tcp # p2p
+      - 127.0.0.1:9993:8545 # http
+      - 127.0.0.1:9994:8546 # ws
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    networks:
+      - optimism
+      - mainnet
+
+  op-node:
+    image: us-docker.pkg.dev/oplabs-tools-artifacts/images/op-node:${OP_NODE_TAG:-v1.7.7-rc.1}
+    container_name: ${COMPOSE_PROJECT_NAME}-op-node
+    restart: unless-stopped
+    stop_grace_period: 5m
+    entrypoint: /scripts/start-op-node.sh
+    env_file:
+      - ../.env
+      - ./envs/op-node.env
+    volumes:
+      - /data/optimism/config:/chainconfig
+      - /data/optimism/scripts:/scripts
+      - /data/optimism/shared:/shared
+    ports:
+      - 9003:9003/udp # p2p
+      - 9003:9003/tcp # p2p
+      - 127.0.0.1:9545:9545 # http
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    networks:
+      - optimism
+      - mainnet
+
+  bedrock-init:
+    build:
+      context: ./dockerfiles
+      dockerfile: Dockerfile.bedrock-init
+    container_name: ${COMPOSE_PROJECT_NAME}-bedrock-init
+    entrypoint: /scripts/init-bedrock.sh
+    env_file:
+      - ../.env
+      - ./envs/op-geth.env
+    volumes:
+      - /data/optimism/scripts:/scripts
+      - /data/optimism/shared:/shared
+      - /data/optimism/op_geth:/geth
+      - /data/optimism/l2geth:/legacy-geth
+      - /data/optimism/downloads:/downloads
+    networks:
+      - optimism
+
+  influxdb:
+    image: influxdb:${INFLUXDB_TAG:-1.8}
+    container_name: ${COMPOSE_PROJECT_NAME}-influxdb
+    restart: unless-stopped
+    env_file:
+      - ../.env
+      - ./envs/influxdb.env
+    volumes:
+      - /data/optimism/scripts/influx_init.iql:/docker-entrypoint-initdb.d/influx_init.iql
+      - /data/optimism/influxdb:/var/lib/influxdb
+    ports:
+      - 8086:8086
+    networks:
+      - optimism

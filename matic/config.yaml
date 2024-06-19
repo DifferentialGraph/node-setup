@@ -1,5 +1,7 @@
-chain: gnosis
+chain: bor-mainnet
+nat: stun 
 datadir: /home/erigon/.local/share/erigon
+ethash.dagdir: /home/erigon/.local/share/erigon/ethash 
 externalcl: false
 
 # eth/66 peering
@@ -9,8 +11,11 @@ port: 30303
 torrent.port: 42069
 torrent.download.rate: 20mb
 torrent.upload.rate: 20mb
-sync.loop.block.limit: 10_000_000
-batchSize: 1g
+# sync.loop.block.limit: 10_000_000
+bodies.cache: 5G 
+db.pagesize: 16k 
+batchSize: 2048MB 
+db.size.limit: 12t
 
 # gRPC Server
 private.api.addr: localhost:9090 # for modular components connections
@@ -29,8 +34,10 @@ http.addr: 0.0.0.0
 http.vhosts: "*"
 http.corsdomain: "*"
 http.api: [eth, erigon, web3, debug, net, trace]
-# rpc.returndata.limit: 1000000
-# rpc.accessList : rules.json
+rpc.returndata.limit: 1100000
+# rpc.accessList: rules.json
+rpc.gascap: 300000000
+rpc.batch.limit: 200000 
 ws: false
 ws.compression: true
 
@@ -44,6 +51,6 @@ pprof: false
 pprof.addr: 0.0.0.0 
 pprof.port: 6061
 
-# snapshots: true
+snap.stop : true
+bor.heimdall : https://heimdall.stakesystems.io
 # snap.keepblocks: true
-# db.size.limit: '8TB'

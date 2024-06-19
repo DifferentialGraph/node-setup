@@ -1,4 +1,4 @@
-chain: gnosis
+chain: mainnet
 datadir: /home/erigon/.local/share/erigon
 externalcl: false
 
@@ -29,8 +29,9 @@ http.addr: 0.0.0.0
 http.vhosts: "*"
 http.corsdomain: "*"
 http.api: [eth, erigon, web3, debug, net, trace]
-# rpc.returndata.limit: 1000000
+rpc.returndata.limit: 1100000
 # rpc.accessList : rules.json
+rpc.gascap: 5000000000
 ws: false
 ws.compression: true
 
@@ -47,3 +48,15 @@ pprof.port: 6061
 # snapshots: true
 # snap.keepblocks: true
 # db.size.limit: '8TB'
+
+# beacon api
+caplin.archive: true
+caplin.backfilling: true
+caplin.backfilling.blob: true
+caplin.backfilling.blob.no-pruning: true
+beacon.api: [beacon, builder, config, debug, node, validator, lighthouse]
+beacon.api.port: 5555
+beacon.api.addr: 0.0.0.0
+beacon.api.cors.allow-origins: "*"
+
+# nat: stun

@@ -3,13 +3,13 @@
 node-start() {
     if [ -f "$NODE_DIR/$1/$1.yml" ]; then
         case $1 in
-            "ethereum")
-                if [ "$(docker volume ls -f name=ethereum_config | awk '{print $NF}' | grep -E '^'ethereum_config'$')" ]; then
-                    rm -rf /var/lib/docker/volumes/ethereum_config/_data/config.yaml
+            "mainnet")
+                if [ "$(docker volume ls -f name=mainnet_config | awk '{print $NF}' | grep -E '^'mainnet_config'$')" ]; then
+                    rm -rf /var/lib/docker/volumes/mainnet_config/_data/config.yaml
                 else
-                    docker volume create ethereum_config
+                    docker volume create mainnet_config
                 fi
-                cp $NODE_DIR/ethereum/config.yaml /var/lib/docker/volumes/ethereum_config/_data/
+                cp $NODE_DIR/mainnet/config.yaml /var/lib/docker/volumes/mainnet_config/_data/
                 ;;
             "gnosis")
                 if [ "$(docker volume ls -f name=gnosis_config | awk '{print $NF}' | grep -E '^'gnosis_config'$')" ]; then
@@ -19,19 +19,42 @@ node-start() {
                 fi
                 cp $NODE_DIR/gnosis/config.yaml /var/lib/docker/volumes/gnosis_config/_data/
                 ;;
+            "matic")
+                if [ "$(docker volume ls -f name=matic_config | awk '{print $NF}' | grep -E '^'matic_config'$')" ]; then
+                    rm -rf /var/lib/docker/volumes/matic_config/_data/config.yaml
+                else
+                    docker volume create matic_config
+                fi
+                cp $NODE_DIR/matic/config.yaml /var/lib/docker/volumes/matic_config/_data/
+                ;;
+            "arbitrum-one")
+                ;;
+            "avalanche")
+                if [ "$(docker volume ls -f name=avalanche_config | awk '{print $NF}' | grep -E '^'avalanche_config'$')" ]; then
+                    rm -rf /var/lib/docker/volumes/avalanche_config/_data/config.json
+                else
+                    docker volume create avalanche_config
+                fi
+                cp $NODE_DIR/avalanche/node.json /var/lib/docker/volumes/avalanche_config/_data/
+                if [ "$(docker volume ls -f name=avalanche-c_config | awk '{print $NF}' | grep -E '^'avalanche-c_config'$')" ]; then
+                    rm -rf /var/lib/docker/volumes/avalanche-c_config/_data/config.json
+                else
+                    docker volume create avalanche-c_config
+                fi
+                cp $NODE_DIR/avalanche/config.json /var/lib/docker/volumes/avalanche-c_config/_data/
+                ;;
+            "optimism")
+                rm -rf /data/optimism/scripts/*
+                cp $NODE_DIR/optimism/scripts/* /data/optimism/scripts/
+                ;;
             *)
                 echo "Chain not supported yet!"
                 return
                 ;;
         esac
 
-        COMPOSE_PROJECT_NAME=$1 COMPOSE_FILE=$NODE_DIR/$1/$1.yml docker compose pull
-
-        if [ -z "$2" ]; then
-            COMPOSE_PROJECT_NAME=$1 COMPOSE_FILE=$NODE_DIR/$1/$1.yml docker compose --env-file $NODE_DIR/.env up -d --remove-orphans --build
-        else
-            COMPOSE_PROJECT_NAME=$1 COMPOSE_FILE=$NODE_DIR/$1/$1.yml docker compose --env-file $NODE_DIR/.env.$2 up -d --remove-orphans --build
-        fi
+        COMPOSE_PROJECT_NAME=$1 COMPOSE_FILE=$NODE_DIR/$1/$1.yml docker compose --env-file $NODE_DIR/.env pull
+        COMPOSE_PROJECT_NAME=$1 COMPOSE_FILE=$NODE_DIR/$1/$1.yml docker compose --env-file $NODE_DIR/.env up -d --remove-orphans --build
     else
         echo "$1 configuration file not found."
     fi
@@ -39,7 +62,7 @@ node-start() {
 
 node-stop() {
     if [ -f "$NODE_DIR/$1/$1.yml" ]; then
-        COMPOSE_PROJECT_NAME=$1 COMPOSE_FILE=$NODE_DIR/$1/$1.yml docker compose stop
+        COMPOSE_PROJECT_NAME=$1 COMPOSE_FILE=$NODE_DIR/$1/$1.yml docker compose --env-file $NODE_DIR/.env stop
     else
         echo "$1 configuration file not found."
     fi
@@ -59,19 +82,39 @@ node-monitor() {
     then
         tmux new-session -d -s $1
         case $1 in
-        "arbitrum")    
-            tmux rename-window -t 0 'nitro-cli' && tmux send-keys -t 'nitro-cli' "docker exec -it ${1}-nitro /bin/bash" C-m
-            tmux new-window -t $1:1 -n 'classic-cli' && tmux send-keys -t 'classic-cli' "docker exec -it ${1}-classic /bin/bash" C-m
-            tmux new-window -t $1:2 -n 'nitro-log' && tmux send-keys -t 'nitro-log' "docker logs ${1}-nitro --tail 10 -f | pino-pretty -c -t" C-m
-            tmux new-window -t $1:3 -n 'classic-log' && tmux send-keys -t 'classic-log' "docker logs ${1}-classic --tail 10 -f | pino-pretty -c -t" C-m
+        "mainnet")
+            tmux rename-window -t 0 'mainnet-log' && tmux send-keys -t 'mainnet-log' "docker logs mainnet --tail 10 -f | pino-pretty -c -t" C-m
+            tmux new-window -t $1:1 -n 'mainnet-container' && tmux send-keys -t 'mainnet-container' "docker exec -it mainnet sh" C-m
+            # tmux new-window -t $1:2 -n 'lighthouse-log' && tmux send-keys -t 'lighthouse-log' "docker logs mainnet-lighthouse --tail 10 -f | pino-pretty -c -t" C-m
+            # tmux new-window -t $1:3 -n 'lighthouse-container' && tmux send-keys -t 'lighthouse-container' "docker exec -it mainnet-lighthouse sh" C-m
+        ;;
+        "gnosis")
+            tmux rename-window -t 0 'gnosis-log' && tmux send-keys -t 'gnosis-log' "docker logs gnosis --tail 10 -f | pino-pretty -c -t" C-m
+            tmux new-window -t $1:1 -n 'gnosis-container' && tmux send-keys -t 'gnosis-container' "docker exec -it gnosis sh" C-m
+            # tmux new-window -t $1:2 -n 'lighthouse-container' && tmux send-keys -t 'lighthouse-container' "docker exec -it gnosis-lighthouse sh" C-m
+            # tmux new-window -t $1:3 -n 'lighthouse-log' && tmux send-keys -t 'lighthouse-log' "docker logs gnosis-lighthouse --tail 10 -f | pino-pretty -c -t" C-m
+        ;;
+        "matic")
+            tmux rename-window -t 0 'matic-log' && tmux send-keys -t 'matic-log' "docker logs matic --tail 10 -f | pino-pretty -c -t" C-m
+            tmux new-window -t $1:1 -n 'matic-container' && tmux send-keys -t 'matic-container' "docker exec -it matic sh" C-m
+            # tmux new-window -t $1:2 -n 'lighthouse-container' && tmux send-keys -t 'lighthouse-container' "docker exec -it matic-lighthouse sh" C-m
+            # tmux new-window -t $1:3 -n 'lighthouse-log' && tmux send-keys -t 'lighthouse-log' "docker logs matic-lighthouse --tail 10 -f | pino-pretty -c -t" C-m
+        ;;
+        "arbitrum-one")    
+            tmux rename-window -t 0 'nitro-log' && tmux send-keys -t 'nitro-log' "docker logs ${1}-nitro --tail 10 -f | pino-pretty -c -t" C-m
+            tmux new-window -t $1:1 -n 'classic-log' && tmux send-keys -t 'classic-log' "docker logs ${1}-classic --tail 10 -f | pino-pretty -c -t" C-m
+            tmux new-window -t $1:2 -n 'nitro-cli' && tmux send-keys -t 'nitro-cli' "docker exec -it ${1}-nitro /bin/bash" C-m
+            tmux new-window -t $1:3 -n 'classic-cli' && tmux send-keys -t 'classic-cli' "docker exec -it ${1}-classic /bin/bash" C-m
         ;;
         "avalanche")
-            tmux rename-window -t 0 'avalanche-cli' && tmux send-keys -t 'avalanche-cli' "docker exec -it ${1} /bin/bash" C-m
-            tmux new-window -t $1:1 -n 'avalanche-log' && tmux send-keys -t 'avalanche-log' "docker logs ${1} --tail 10 -f | pino-pretty -c -t" C-m
+            tmux rename-window -t 0 'avalanche-log' && tmux send-keys -t 'avalanche-log' "docker logs ${1} --tail 10 -f | pino-pretty -c -t" C-m
+            tmux new-window -t $1:1 -n 'avalanche-cli' && tmux send-keys -t 'avalanche-cli' "docker exec -it ${1} /bin/bash" C-m
         ;;
         "optimism")
-            tmux rename-window -t 0 'optimism-dtl' && tmux send-keys -t 'optimism-l2geth' "docker logs ${1}-dtl --tail 10 -f | pino-pretty -c -t" C-m
-            tmux new-window -t $1:1 -n 'optimism-l2geth' && tmux send-keys -t 'optimism-l2geth' "docker logs ${1}-l2geth --tail 10 -f | pino-pretty -c -t" C-m
+            tmux rename-window -t 0 'op-geth' && tmux send-keys -t 'op-geth' "docker logs ${1}-op-geth --tail 10 -f | pino-pretty -c -t" C-m
+            tmux new-window -t $1:1 -n 'op-node' && tmux send-keys -t 'op-node' "docker logs ${1}-op-node --tail 10 -f | pino-pretty -c -t" C-m
+            tmux new-window -t $1:2 -n 'bedrock-init' && tmux send-keys -t 'bedrock-init' "docker logs ${1}-bedrock-init --tail 10 -f | pino-pretty -c -t" C-m
+            tmux new-window -t $1:3 -n 'l2geth' && tmux send-keys -t 'l2geth' "docker logs ${1}-l2geth --tail 10 -f | pino-pretty -c -t" C-m
         ;;
         "celo")
             tmux rename-window -t 0 'celo-cli' && tmux send-keys -t 'celo-cli' "celocli node:synced" C-m
@@ -80,18 +123,6 @@ node-monitor() {
         "fantom")
             tmux rename-window -t 0 'fantom-cli' && tmux send-keys -t 'fantom-cli' "docker exec -it fantom /bin/bash" C-m
             tmux new-window -t $1:1 -n 'fantom-log' && tmux send-keys -t 'fantom-log' "docker logs fantom --tail 10 -f | pino-pretty -c -t" C-m
-        ;;
-        "ethereum")
-            tmux rename-window -t 0 'ethereum-log' && tmux send-keys -t 'ethereum-log' "docker logs ethereum --tail 10 -f | pino-pretty -c -t" C-m
-            tmux new-window -t $1:1 -n 'lighthouse-log' && tmux send-keys -t 'lighthouse-log' "docker logs ethereum-lighthouse --tail 10 -f | pino-pretty -c -t" C-m
-            tmux new-window -t $1:2 -n 'ethereum-container' && tmux send-keys -t 'ethereum-container' "docker exec -it ethereum sh" C-m
-            tmux new-window -t $1:3 -n 'lighthouse-container' && tmux send-keys -t 'lighthouse-container' "docker exec -it ethereum-lighthouse sh" C-m
-        ;;
-        "gnosis")
-            tmux rename-window -t 0 'gnosis-log' && tmux send-keys -t 'gnosis-log' "docker logs gnosis --tail 10 -f | pino-pretty -c -t" C-m
-            tmux new-window -t $1:1 -n 'lighthouse-log' && tmux send-keys -t 'lighthouse-log' "docker logs gnosis-lighthouse --tail 10 -f | pino-pretty -c -t" C-m
-            tmux new-window -t $1:2 -n 'gnosis-container' && tmux send-keys -t 'gnosis-container' "docker exec -it gnosis sh" C-m
-            tmux new-window -t $1:3 -n 'lighthouse-container' && tmux send-keys -t 'lighthouse-container' "docker exec -it gnosis-lighthouse sh" C-m
         ;;
         *)
             echo "Chain not supported!"
