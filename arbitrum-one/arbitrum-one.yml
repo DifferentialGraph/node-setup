@@ -17,12 +17,17 @@ services:
       - mainnet
     volumes:
       - /data/arbitrum-one/nitro:/home/user/.arbitrum
-    ports:
-      - 127.0.0.1:8547:8547/tcp # http
+    # ports:
+      # - 127.0.0.1:8547:8547/tcp # http
+      # - 8547:8547/tcp # http
     expose:
+      - 8547 # http
       - 8548 # ws
     command:
       - --init.url=https://snapshot.arbitrum.foundation/arb1/nitro-archive.tar
+      - --execution.caching.archive
+      - --persistent.chain=/home/user/.arbitrum/data
+      - --persistent.global-config=/home/user/.arbitrum
       - --execution.rpc.classic-redirect=http://${COMPOSE_PROJECT_NAME}-classic:8547
       - --parent-chain.connection.url=${MAINNET_RPC_EXECUTION}
       - --parent-chain.blob-client.beacon-url=${MAINNET_RPC_CONSENSUS}
@@ -31,12 +36,16 @@ services:
       - --http.corsdomain=* 
       - --http.addr=0.0.0.0 
       - --http.vhosts=*   
-      - --execution.caching.archive
-      - --persistent.chain=/home/user/.arbitrum/data
-      - --persistent.global-config=/home/user/.arbitrum
+      # - --ws.port=8547
+      # - --ws.addr=0.0.0.0
+      # - --ws.origins=*
+    environment:
+      VIRTUAL_HOST: arbitrum-one.${HOST}
+      VIRTUAL_PORT: 8547
+      LETSENCRYPT_HOST: arbitrum-one.${HOST}
 
   arbitrum-one-classic:
-    image: 'offchainlabs/arb-node:v1.4.5-e97c1a4'
+    image: offchainlabs/arb-node:${ARBITRUM_CLASSIC_TAG:-v1.4.5-e97c1a4}
     container_name: ${COMPOSE_PROJECT_NAME}-classic
     restart: unless-stopped
     stop_grace_period: 30s
@@ -51,12 +60,12 @@ services:
       - 8548 # ws
     command:
       - --l1.url=${MAINNET_RPC_EXECUTION}
-      - --node.chain-id=42161
       - --l2.disable-upstream
-      - --node.cache.allow-slow-lookup
-      - --core.checkpoint-gas-frequency=156250000
-      - --core.lazy-load-core-machine
-      - --core.checkpoint-pruning-mode=off
+      - --node.chain-id=42161
       - --node.rpc.tracing.enable
       - --node.rpc.tracing.namespace=trace
-      # - --node.rpc.addr=0.0.0.0
+      - --core.checkpoint-pruning-mode=off
+      - --node.cache.allow-slow-lookup
+      - --core.checkpoint-gas-frequency=156250000
+      - --node.rpc.addr=0.0.0.0
+      # - --core.lazy-load-core-machine

@@ -41,7 +41,21 @@ case $1 in
         ;;
 esac
 
-COMPOSE_PROJECT_NAME=$1 COMPOSE_FILE=$1/$1.yml docker compose --env-file .env up -d --remove-orphans --build
+COMPOSE_PROJECT_NAME=$1 COMPOSE_FILE=$1/$1.yml docker compose --env-file .env.user up -d --remove-orphans --build
+
+if [ ! -z "$HOST" ]; then
+    case $1 in
+        "arbitrum-one")
+            docker network connect reverse-proxy arbitrum-one-nitro 
+        ;;
+        "optimism")
+            docker network connect reverse-proxy optimism-op-geth
+        ;;
+        *)
+            docker network connect reverse-proxy $1
+        ;;
+    esac
+fi
 
 # export to .bashrc if needed
 if ! grep -q "#node-setup" ~/.bashrc; then

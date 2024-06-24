@@ -27,14 +27,19 @@ services:
       - 42089:42069/udp # snap sync
       - 4020:4000/udp # sentinel peering (caplin)
       - 4021:4001/tcp # sentinel peering (caplin)
-      - 127.0.0.1:8565:8545/tcp # HTTP & WebSockets & GraphQL
+      # - 127.0.0.1:8565:8545/tcp # HTTP & WebSockets & GraphQL
     expose:
       - 9090/tcp # gRPC Server
       - 8551/tcp # Engine API (JWT auth)
       - 9091/tcp # incoming gRPC Connections
       - 6060/tcp # metric
       - 6061/tcp # pprof
+      - 8545/tcp # HTTP & WebSockets & GraphQL
     command: >
       --config /home/erigon/.config/config.yaml
     mem_swappiness: 0
     user: ${ERIGON_UID:-1000}:${ERIGON_GID:-1000}
+    environment:
+      VIRTUAL_HOST: matic.${HOST}
+      VIRTUAL_PORT: 8545
+      LETSENCRYPT_HOST: matic.${HOST}

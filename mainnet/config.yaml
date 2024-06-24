@@ -59,4 +59,4 @@ beacon.api.port: 5555
 beacon.api.addr: 0.0.0.0
 beacon.api.cors.allow-origins: "*"
 
-# nat: stun
+nat: stun

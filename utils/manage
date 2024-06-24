@@ -2,6 +2,7 @@
 
 node-start() {
     if [ -f "$NODE_DIR/$1/$1.yml" ]; then
+        source $NODE_DIR/.env.user
         case $1 in
             "mainnet")
                 if [ "$(docker volume ls -f name=mainnet_config | awk '{print $NF}' | grep -E '^'mainnet_config'$')" ]; then
@@ -53,8 +54,26 @@ node-start() {
                 ;;
         esac
 
-        COMPOSE_PROJECT_NAME=$1 COMPOSE_FILE=$NODE_DIR/$1/$1.yml docker compose --env-file $NODE_DIR/.env pull
-        COMPOSE_PROJECT_NAME=$1 COMPOSE_FILE=$NODE_DIR/$1/$1.yml docker compose --env-file $NODE_DIR/.env up -d --remove-orphans --build
+        COMPOSE_PROJECT_NAME=$1 COMPOSE_FILE=$NODE_DIR/$1/$1.yml docker compose --env-file $NODE_DIR/.env.user pull
+        COMPOSE_PROJECT_NAME=$1 COMPOSE_FILE=$NODE_DIR/$1/$1.yml docker compose --env-file $NODE_DIR/.env.user up -d --remove-orphans --build
+
+        if [ ! -z "$HOST" ]; then
+            case $1 in
+                "arbitrum-one")
+                    container=$1-nitro
+                ;;
+                "optimism")
+                    container=$1-op-geth
+                ;;
+                *)
+                    container=$1
+                ;;
+            esac
+            nets=$(docker container inspect --format '{{range $net,$v := .NetworkSettings.Networks}}{{printf "%s\n" $net}}{{end}}' $container)
+            if [[ ! ${nets[@]} =~ "reverse-proxy" ]]; then
+                docker network connect reverse-proxy $container
+            fi
+        fi
     else
         echo "$1 configuration file not found."
     fi
@@ -62,7 +81,7 @@ node-start() {
 
 node-stop() {
     if [ -f "$NODE_DIR/$1/$1.yml" ]; then
-        COMPOSE_PROJECT_NAME=$1 COMPOSE_FILE=$NODE_DIR/$1/$1.yml docker compose --env-file $NODE_DIR/.env stop
+        COMPOSE_PROJECT_NAME=$1 COMPOSE_FILE=$NODE_DIR/$1/$1.yml docker compose --env-file $NODE_DIR/.env.user stop
     else
         echo "$1 configuration file not found."
     fi

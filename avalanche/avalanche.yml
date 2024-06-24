@@ -18,9 +18,10 @@ services:
     stop_grace_period: 1m
     networks:
       - avalanche
-    ports:
-      - 127.0.0.1:9650:9650
+    # ports:
+    #   - 127.0.0.1:9650:9650
     expose:
+      - 9650
       - 9651
     volumes:
       - /data/avalanche:/root/.avalanchego
@@ -35,3 +36,9 @@ services:
         # "--bootstrap-beacon-connection-timeout=10m0s",
         # "--http-allowed-hosts=*"
       ]
+    environment:
+      VIRTUAL_HOST: avalanche.${HOST}
+      VIRTUAL_PORT: 9650
+      # VIRTUAL_PATH: /ext/bc/C/rpc
+      # VIRTUAL_DEST: /ext/bc/C/rpc
+      LETSENCRYPT_HOST: avalanche.${HOST}
