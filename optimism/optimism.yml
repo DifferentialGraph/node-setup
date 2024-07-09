@@ -16,14 +16,17 @@ services:
       - -c
       - "/scripts/init-l2geth.sh && /scripts/start-l2geth.sh"
     env_file:
-      - ../.env
+      - ../.env.user
       - ./envs/l2geth.env
     volumes:
       - /data/optimism/l2geth:/geth
       - /data/optimism/scripts/:/scripts/
-    ports:
-      - 127.0.0.1:9991:8545 # http
-      - 127.0.0.1:9992:8546 # ws
+    # ports:
+    #   - 127.0.0.1:9991:8545 # http
+    #   - 127.0.0.1:9992:8546 # ws
+    expose:
+      - 8545 # http
+      - 8546 # ws
     networks:
       - optimism
       - mainnet
@@ -35,7 +38,7 @@ services:
     stop_grace_period: 5m
     entrypoint: /scripts/start-op-geth.sh
     env_file:
-      - ../.env
+      - ../.env.user
       - ./envs/op-geth.env
     volumes:
       - /data/optimism/config:/chainconfig
@@ -45,11 +48,11 @@ services:
     ports:
       - 39393:39393/udp # p2p
       - 39393:39393/tcp # p2p
-      # - 127.0.0.1:9993:8545 # http
-      # - 127.0.0.1:9994:8546 # ws
-    expose:
-      - 8545
-      - 8546
+      - 127.0.0.1:9993:8545 # http
+      - 127.0.0.1:9994:8546 # ws
+    # expose:
+    #   - 8545
+    #   - 8546
     extra_hosts:
       - "host.docker.internal:host-gateway"
     networks:
@@ -67,7 +70,7 @@ services:
     stop_grace_period: 5m
     entrypoint: /scripts/start-op-node.sh
     env_file:
-      - ../.env
+      - ../.env.user
       - ./envs/op-node.env
     volumes:
       - /data/optimism/config:/chainconfig
@@ -76,7 +79,9 @@ services:
     ports:
       - 9003:9003/udp # p2p
       - 9003:9003/tcp # p2p
-      - 127.0.0.1:9545:9545 # http
+      # - 127.0.0.1:9545:9545 # http
+    expose:
+      - 9545 # http
     extra_hosts:
       - "host.docker.internal:host-gateway"
     networks:
@@ -90,7 +95,7 @@ services:
     container_name: ${COMPOSE_PROJECT_NAME}-bedrock-init
     entrypoint: /scripts/init-bedrock.sh
     env_file:
-      - ../.env
+      - ../.env.user
       - ./envs/op-geth.env
     volumes:
       - /data/optimism/scripts:/scripts
@@ -106,12 +111,14 @@ services:
     container_name: ${COMPOSE_PROJECT_NAME}-influxdb
     restart: unless-stopped
     env_file:
-      - ../.env
+      - ../.env.user
       - ./envs/influxdb.env
     volumes:
       - /data/optimism/scripts/influx_init.iql:/docker-entrypoint-initdb.d/influx_init.iql
       - /data/optimism/influxdb:/var/lib/influxdb
-    ports:
-      - 8086:8086
+    # ports:
+    #   - 8086:8086
+    expose:
+      - 8086
     networks:
       - optimism
