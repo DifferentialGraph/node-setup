@@ -9,7 +9,7 @@ networks:
 
 services:
   mainnet:
-    image: thorax/erigon:${ERIGON_TAG:-latest}
+    image: thorax/erigon:${MAINNET_ERIGON_TAG:-latest}
     container_name: ${COMPOSE_PROJECT_NAME}
     restart: unless-stopped
     stop_grace_period: 1m
@@ -27,7 +27,7 @@ services:
       - 42069:42069/udp # snap sync
       - 4000:4000/udp # sentinel peering (caplin)
       - 4001:4001/tcp # sentinel peering (caplin)
-      # - 127.0.0.1:8545:8545/tcp # HTTP & WebSockets & GraphQL
+      - 127.0.0.1:8545:8545/tcp # HTTP & WebSockets & GraphQL
     expose:
       - 9090/tcp # gRPC Server
       - 8551/tcp # Engine API (JWT auth)
@@ -35,7 +35,7 @@ services:
       - 6060/tcp # metric
       - 6061/tcp # pprof
       - 5555/tcp # beaconAPI
-      - 8545/tcp # HTTP & WebSockets & GraphQL
+      # - 8545/tcp # HTTP & WebSockets & GraphQL
     command: >
       --config /home/erigon/.config/config.yaml
     mem_swappiness: 0

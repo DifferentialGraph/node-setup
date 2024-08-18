@@ -7,7 +7,7 @@ port: 30303
 
 # download
 torrent.port: 42069
-torrent.download.rate: 20mb
+torrent.download.rate: 2000mb
 torrent.upload.rate: 20mb
 sync.loop.block.limit: 10_000_000
 batchSize: 1g
@@ -59,4 +59,7 @@ beacon.api.port: 5555
 beacon.api.addr: 0.0.0.0
 beacon.api.cors.allow-origins: "*"
 
-nat: stun
+log.console.verbosity: 3
+
+# nat: stun
+#no-downloader: true

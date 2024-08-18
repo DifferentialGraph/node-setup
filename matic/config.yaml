@@ -2,20 +2,20 @@ chain: bor-mainnet
 nat: stun 
 datadir: /home/erigon/.local/share/erigon
 ethash.dagdir: /home/erigon/.local/share/erigon/ethash 
-externalcl: false
+# externalcl: false # (v3 option)
 
 # eth/66 peering
 port: 30303
 
 # download
 torrent.port: 42069
-torrent.download.rate: 20mb
+torrent.download.rate: 1000mb
 torrent.upload.rate: 20mb
 # sync.loop.block.limit: 10_000_000
 bodies.cache: 5G 
 db.pagesize: 16k 
 batchSize: 2048MB 
-db.size.limit: 12t
+db.size.limit: 18t
 
 # gRPC Server
 private.api.addr: localhost:9090 # for modular components connections

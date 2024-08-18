@@ -9,7 +9,7 @@ networks:
 
 services:
   matic:
-    image: thorax/erigon:${ERIGON_VERSION:-latest}
+    image: thorax/erigon:${MATIC_ERIGON_TAG:-latest}
     container_name: ${COMPOSE_PROJECT_NAME}
     restart: unless-stopped
     stop_grace_period: 1m
