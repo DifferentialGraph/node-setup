@@ -50,10 +50,10 @@ node-install() {
         "optimism" "Optimism" OFF \
         "avalanche" "Avalanche" OFF \
         "celo" "Celo" OFF \
-        "fantom" "Fantom" OFF 3>&1 1>&2 2>&3) || { echo "User exit"; exit -1; }
+        "fantom" "Fantom" OFF 3>&1 1>&2 2>&3) || { echo "User exit"; return; }
 
     if [ -z "$CHOICES" ]; then
-        echo "No option selected"
+        { echo "No option selected"; return; }
     else
         for CHOICE in $CHOICES; do
             case "$CHOICE" in
@@ -103,7 +103,7 @@ node-install() {
                 ;;
             *)
                 echo "$CHOICE not available yet" >&2
-                exit 1
+                return
                 ;;
             esac
 
@@ -121,7 +121,7 @@ node-install() {
             if [ ! -z "$HOST" ]; then
                 reverseproxy-check || { echo "Error: reverse proxy not running"; return 1; }
 
-                case $1 in
+                case $CHOICE in
                     "arbitrum-one")
                         docker network connect reverse-proxy arbitrum-one-nitro 
                     ;;
@@ -129,20 +129,20 @@ node-install() {
                         docker network connect reverse-proxy optimism-op-geth
                     ;;
                     *)
-                        docker network connect reverse-proxy $1
+                        docker network connect reverse-proxy $CHOICE
                     ;;
                 esac
 
                 if [ ! -z $WHITELIST ]; then
                     VHOST_PATH=/var/lib/docker/volumes/reverse-proxy_vhost/_data
                     for (( j=0; j<${#WHITELIST[@]}; j++ )); do
-                        echo "allow ${WHITELIST[$j]};" >> ${VHOST_PATH}/$1.${HOST}
+                        echo "allow ${WHITELIST[$j]};" >> ${VHOST_PATH}/${SUBDOMAIN:-$CHOICE}.${HOST}
                     done
-                    echo "deny all;" >> ${VHOST_PATH}/$1.${HOST}
+                    echo "deny all;" >> ${VHOST_PATH}/${SUBDOMAIN:-$CHOICE}.${HOST}
                 fi
             fi
 
-            unset HOST DATABASE_PATH WHITELIST
+            unset HOST SUBDOMAIN DATABASE_PATH WHITELIST
         done
     fi
 
@@ -165,3 +165,4 @@ docker-install || { echo "Error: could not install Docker"; exit 1; }
 
 nodejs-install || { echo "Error: could not install Node.js"; exit 1; }
 
+node-install || { echo "Error: could not install blockchains"; exit 1; }

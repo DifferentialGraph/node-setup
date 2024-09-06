@@ -46,4 +46,3 @@ services:
           "/ws":
             port: 9650
             dest: "/ext/bc/C/ws"
-
