@@ -1,2 +1,9 @@
-.env.user
-.env.*
+*.env
+
+!arbitrum-one-template.env
+!avalanche-template.env
+!celo-template.env
+!gnosis-template.env
+!mainnet-template.env
+!matic-template.env
+!optimism-template.env

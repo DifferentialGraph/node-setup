@@ -1,9 +1,6 @@
 networks:
   arbitrum-one:
     name: arbitrum-one
-  mainnet:
-    external: true
-    name: mainnet
 
 services:
   arbitrum-one-nitro:
@@ -35,13 +32,19 @@ services:
       - --http.corsdomain=* 
       - --http.addr=0.0.0.0 
       - --http.vhosts=*   
+      - --ws.addr=0.0.0.0
+      - --ws.origins=*
       # - --ws.port=8547
-      # - --ws.addr=0.0.0.0
-      # - --ws.origins=*
     environment:
-      VIRTUAL_HOST: arbitrum-one.${HOST}
-      VIRTUAL_PORT: 8547
       LETSENCRYPT_HOST: arbitrum-one.${HOST}
+      VIRTUAL_HOST_MULTIPORTS: |-
+        arbitrum-one.${HOST}:
+          "/":
+            port: 8547
+            dest: "/"
+          "/ws":
+            port: 8548
+            dest: "/"
 
   arbitrum-one-classic:
     image: offchainlabs/arb-node:${ARBITRUM_CLASSIC_TAG:-v1.4.5-e97c1a4}
@@ -51,7 +54,6 @@ services:
     user: root
     networks:
       - arbitrum-one
-      - mainnet
     volumes:
       - /data/arbitrum-one/classic:/home/user/.arbitrum/mainnet
     expose:

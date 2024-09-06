@@ -1,69 +1,167 @@
-#!/bin/bash
+#!/bin/bash -i
 
-case $1 in
-    "mainnet")
-        docker volume create mainnet_config
-        cp mainnet/config.yaml /var/lib/docker/volumes/mainnet_config/_data/
-        ;;
-    "gnosis")
-        docker volume create gnosis_config
-        cp gnosis/config.yaml /var/lib/docker/volumes/gnosis_config/_data/
-        ;;
-    "matic")
-        docker volume create matic_config
-        cp matic/config.yaml /var/lib/docker/volumes/matic_config/_data/
-        ;;
-    "arbitrum-one")
-        curl https://snapshot.arbitrum.foundation/arb1/classic-archive.tar | tar -xv -C  /data/arbitrum-one/classic
-        # docker network connect mainnet arbitrum-one-nitro
-        # docker network connect mainnet arbitrum-one-classic
-        ;;
-    "avalanche")
-        # config
-        docker volume create avalanche_config
-        cp avalanche/node.json /var/lib/docker/volumes/avalanche_config/_data/
-        # C chain config
-        docker volume create avalanche-c_config
-        cp avalanche/config.json /var/lib/docker/volumes/avalanche-c_config/_data/
-        ;;
-    "optimism")
-        cp optimism/scripts/* /data/optimism/scripts/
-        ;;
-    "celo")
-        apt install libusb-1.0-0-dev libudev-dev
-        npm install -g @celo/celocli
-        ;;
-    "fantom")
-        ;;
-    *)
-        echo "Chain not supported yet!"
-        exit
-        ;;
-esac
+basics-install() {
+    apt update
+    apt -y install ca-certificates curl grep git whiptail
+}
 
-COMPOSE_PROJECT_NAME=$1 COMPOSE_FILE=$1/$1.yml docker compose --env-file .env.user up -d --remove-orphans --build
+docker-install() {
+    if ! grep -q "docker" <<< $(find /etc/apt/ -name *.list | xargs cat | grep  ^[[:space:]]*deb | grep -v deb-src); then
+        echo "Installing Docker..."
+        install -m 0755 -d /etc/apt/keyrings
+        curl -fsSL https://download.docker.com/linux/ubuntu/gpg -o /etc/apt/keyrings/docker.asc
+        chmod a+r /etc/apt/keyrings/docker.asc
+        echo \
+            "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.asc] https://download.docker.com/linux/ubuntu \
+            $(. /etc/os-release && echo "$VERSION_CODENAME") stable" | \
+            sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
+            apt update && apt install docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin docker-compose
+        apt -y install docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin docker-compose
+    fi
+}
 
-if [ ! -z "$HOST" ]; then
-    case $1 in
-        "arbitrum-one")
-            docker network connect reverse-proxy arbitrum-one-nitro 
-        ;;
-        "optimism")
-            docker network connect reverse-proxy optimism-op-geth
-        ;;
-        *)
-            docker network connect reverse-proxy $1
-        ;;
-    esac
-fi
+nodejs-install() {
+    if [ ! -d "$HOME/.nvm" ]; then
+        echo "Adding NVM"
+        apt -y install curl grep
+        curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.0/install.sh | bash
+        source $HOME/.bashrc
+        nvm install --lts
+        nvm use --lts
+    fi
 
-# export to .bashrc if needed
-if ! grep -q "#node-setup" ~/.bashrc; then
-    echo "Modifying .bashrc ..."
-    DIR="$( cd "$( dirname -- $0 )" && pwd )"
-    echo -e "\n" >> ~/.bashrc
-    echo "#node-setup" >> ~/.bashrc
-    echo "export NODE_DIR=$DIR" >> ~/.bashrc
-    echo 'source $NODE_DIR/utils/manage' >> ~/.bashrc
-    source ~/.bashrc
-fi
+    if [ `npm list -g | grep -c pino-pretty` -eq 0 ]; then
+        echo "Adding Pino Pretty"
+        npm install -g pino-pretty
+    fi
+}
+
+reverseproxy-check() {
+    if [ "$( docker container inspect -f '{{.State.Running}}' nginx-proxy )" = "false" ] || [ "$( docker container inspect -f '{{.State.Running}}' nginx-ssl )" = "false" ]; then
+        return 1
+    fi
+}
+
+node-install() {
+    CHOICES=$(whiptail --title "Blockchain Node Setup" --separate-output --checklist "Choose blockchain" 25 52 16 \
+        "mainnet" "Ethereum Mainnet" OFF \
+        "arbitrum-one" "Arbitrum-One Nitro & Classic" OFF \
+        "matic" "Polygon Matic" OFF \
+        "optimism" "Optimism" OFF \
+        "avalanche" "Avalanche" OFF \
+        "celo" "Celo" OFF \
+        "fantom" "Fantom" OFF 3>&1 1>&2 2>&3) || { echo "User exit"; exit -1; }
+
+    if [ -z "$CHOICES" ]; then
+        echo "No option selected"
+    else
+        for CHOICE in $CHOICES; do
+            case "$CHOICE" in
+            "mainnet")
+                [ -f "mainnet/mainnet.env" ] || { echo "Error: user mainnet.env file not found"; return 1; }
+                source mainnet/mainnet.env
+                docker volume create mainnet_config
+                cp mainnet/config.yaml /var/lib/docker/volumes/mainnet_config/_data/
+                ;;
+            "arbitrum-one")
+                [ -f "arbitrum-one/arbitrum-one.env" ] || { echo "Error: user arbitrum-one.env file not found"; return 1; }
+                source arbitrum-one/arbitrum-one.env
+                curl https://snapshot.arbitrum.foundation/arb1/classic-archive.tar | tar -xv -C  /data/arbitrum-one/classic
+                ;;
+            "matic")
+                [ -f "matic/matic.env" ] || { echo "Error: user matic.env file not found"; return 1; }
+                source matic/matic.env
+                docker volume create matic_config
+                cp matic/config.yaml /var/lib/docker/volumes/matic_config/_data/
+                ;;
+            "optimism")
+                [ -f "optimism/optimism.env" ] || { echo "Error: user optimism.env file not found"; return 1; }
+                source optimism/optimism.env
+                cp optimism/scripts/* /data/optimism/scripts/
+                ;;
+            "avalanche")
+                [ -f "avalanche/avalanche.env" ] || { echo "Error: user avalanche.env file not found"; return 1; }
+                source avalanche/avalanche.env
+                # config
+                docker volume create avalanche_config
+                cp avalanche/node.json /var/lib/docker/volumes/avalanche_config/_data/
+                # C chain config
+                docker volume create avalanche-c_config
+                cp avalanche/config.json /var/lib/docker/volumes/avalanche-c_config/_data/
+                ;;
+            "gnosis")
+                [ -f "gnosis/gnosis.env" ] || { echo "Error: user gnosis.env file not found"; return 1; }
+                source gnosis/gnosis.env
+                docker volume create gnosis_config
+                cp gnosis/config.yaml /var/lib/docker/volumes/gnosis_config/_data/
+                ;;
+            "celo")
+                [ -f "celo/celo.env" ] || { echo "Error: user celo.env file not found"; return 1; }
+                source celo/celo.env
+                apt install libusb-1.0-0-dev libudev-dev
+                npm install -g @celo/celocli
+                ;;
+            *)
+                echo "$CHOICE not available yet" >&2
+                exit 1
+                ;;
+            esac
+
+            if [ -z $DATABASE_PATH ]; then
+                COMPOSE_PROJECT_NAME=$CHOICE \
+                COMPOSE_FILE=$CHOICE/$CHOICE.yml \
+                docker compose --env-file $CHOICE/$CHOICE.env up -d --remove-orphans --build
+            else
+                COMPOSE_PROJECT_NAME=$CHOICE \
+                COMPOSE_FILE=$CHOICE/$CHOICE.yml \
+                COMPOSE_PROFILES=create-volume \
+                docker compose --env-file $CHOICE/$CHOICE.env up -d --remove-orphans --build
+            fi
+
+            if [ ! -z "$HOST" ]; then
+                reverseproxy-check || { echo "Error: reverse proxy not running"; return 1; }
+
+                case $1 in
+                    "arbitrum-one")
+                        docker network connect reverse-proxy arbitrum-one-nitro 
+                    ;;
+                    "optimism")
+                        docker network connect reverse-proxy optimism-op-geth
+                    ;;
+                    *)
+                        docker network connect reverse-proxy $1
+                    ;;
+                esac
+
+                if [ ! -z $WHITELIST ]; then
+                    VHOST_PATH=/var/lib/docker/volumes/reverse-proxy_vhost/_data
+                    for (( j=0; j<${#WHITELIST[@]}; j++ )); do
+                        echo "allow ${WHITELIST[$j]};" >> ${VHOST_PATH}/$1.${HOST}
+                    done
+                    echo "deny all;" >> ${VHOST_PATH}/$1.${HOST}
+                fi
+            fi
+
+            unset HOST DATABASE_PATH WHITELIST
+        done
+    fi
+
+    # export to .bashrc if needed
+    if ! grep -q "#node-setup" ~/.bashrc; then
+        echo "Modifying .bashrc ..."
+        DIR="$( cd "$( dirname -- $0 )" && pwd )"
+        echo -e "\n" >> ~/.bashrc
+        echo "#node-setup" >> ~/.bashrc
+        echo "export NODE_DIR=$DIR" >> ~/.bashrc
+        echo 'source $NODE_DIR/utils/manage' >> ~/.bashrc
+        source ~/.bashrc
+    fi
+}
+
+
+basics-install || { echo "Error: could not install basic tools"; exit 1; }
+
+docker-install || { echo "Error: could not install Docker"; exit 1; }
+
+nodejs-install || { echo "Error: could not install Node.js"; exit 1; }
+

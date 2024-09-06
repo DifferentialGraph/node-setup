@@ -2,7 +2,21 @@
 
 node-start() {
     if [ -f "$NODE_DIR/$1/$1.yml" ]; then
+        [ -f "$NODE_DIR/.env.user" ] || { echo "Error: .env.user file not found"; return 1; }
         source $NODE_DIR/.env.user
+
+        if [ ! -z $HOST ]; then
+            VHOST_PATH=/var/lib/docker/volumes/reverse-proxy_vhost/_data
+            [ -f "${VHOST_PATH}/${1}.${HOST}" ] && rm ${VHOST_PATH}/${1}.${HOST}
+
+            if [ ! -z $WHITELIST ]; then
+                for (( j=0; j<${#WHITELIST[@]}; j++ )); do
+                    echo "allow ${WHITELIST[$j]};" >> ${VHOST_PATH}/${1}.${HOST}
+                done
+                echo "deny all;" >> ${VHOST_PATH}/$1.${HOST}
+            fi
+        fi
+        
         case $1 in
             "mainnet")
                 if [ "$(docker volume ls -f name=mainnet_config | awk '{print $NF}' | grep -E '^'mainnet_config'$')" ]; then

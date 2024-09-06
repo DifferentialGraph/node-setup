@@ -12,7 +12,7 @@ networks:
 
 services:
   avalanche:
-    image: avaplatform/avalanchego:${AVALANCHE_TAG-v1.11.8}
+    image: avaplatform/avalanchego:${AVALANCHE_TAG-v1.11.9}
     container_name: ${COMPOSE_PROJECT_NAME}
     restart: unless-stopped
     stop_grace_period: 1m
@@ -34,11 +34,16 @@ services:
         # "--api-admin-enabled=true",
         "--http-host=",
         # "--bootstrap-beacon-connection-timeout=10m0s",
-        # "--http-allowed-hosts=*"
+        "--http-allowed-hosts=*"
       ]
     environment:
-      VIRTUAL_HOST: avalanche.${HOST}
-      VIRTUAL_PORT: 9650
-      # VIRTUAL_PATH: /ext/bc/C/rpc
-      VIRTUAL_DEST: /ext/bc/C/rpc
       LETSENCRYPT_HOST: avalanche.${HOST}
+      VIRTUAL_HOST_MULTIPORTS: |-
+        avalanche.${HOST}:
+          "/":
+            port: 9650
+            dest: "/ext/bc/C/rpc"
+          "/ws":
+            port: 9650
+            dest: "/ext/bc/C/ws"
+

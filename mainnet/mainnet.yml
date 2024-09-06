@@ -3,6 +3,12 @@ volumes:
     external: true
     name: ${COMPOSE_PROJECT_NAME}_config
 
+profiles:
+  create-volume:
+    volumes:
+      data:
+        name: ${COMPOSE_PROJECT_NAME}_data
+
 networks:
   mainnet:
     name: mainnet
@@ -17,7 +23,7 @@ services:
       - mainnet
     volumes:
       - config:/home/erigon/.config
-      - /data/mainnet:/home/erigon/.local/share/erigon
+      - ${DATABASE_PATH:-data}:/home/erigon/.local/share/erigon
     ports:
       - 30303:30303/tcp # eth/66 peering
       - 30303:30303/udp # eth/66 peering

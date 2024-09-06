@@ -32,8 +32,9 @@ http.api: [eth, erigon, web3, debug, net, trace]
 rpc.returndata.limit: 1100000
 # rpc.accessList : rules.json
 rpc.gascap: 5000000000
-ws: false
-ws.compression: true
+ws: true
+# ws.port: 8546
+# ws.compression: true
 
 # metric
 metrics : false
@@ -50,7 +51,7 @@ pprof.port: 6061
 # db.size.limit: '8TB'
 
 # beacon api
-caplin.archive: true
+caplin.archive: false
 caplin.backfilling: true
 caplin.backfilling.blob: true
 caplin.backfilling.blob.no-pruning: true
