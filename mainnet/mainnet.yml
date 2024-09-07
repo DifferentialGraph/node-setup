@@ -2,12 +2,9 @@ volumes:
   config:
     external: true
     name: ${COMPOSE_PROJECT_NAME}_config
-
-profiles:
-  create-volume:
-    volumes:
-      data:
-        name: ${COMPOSE_PROJECT_NAME}_data
+  data:
+    external: true
+    name: ${COMPOSE_PROJECT_NAME}_data
 
 networks:
   mainnet:

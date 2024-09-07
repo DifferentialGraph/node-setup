@@ -43,7 +43,7 @@ reverseproxy-check() {
 }
 
 node-install() {
-    CHOICES=$(whiptail --title "Blockchain Node Setup" --separate-output --checklist "Choose blockchain" 25 52 16 \
+    CHAINS=$(whiptail --title "Blockchain Node Setup" --separate-output --checklist "Choose blockchain" 25 52 16 \
         "mainnet" "Ethereum Mainnet" OFF \
         "arbitrum-one" "Arbitrum-One Nitro & Classic" OFF \
         "matic" "Polygon Matic" OFF \
@@ -52,11 +52,11 @@ node-install() {
         "celo" "Celo" OFF \
         "fantom" "Fantom" OFF 3>&1 1>&2 2>&3) || { echo "User exit"; return; }
 
-    if [ -z "$CHOICES" ]; then
+    if [ -z "$CHAINS" ]; then
         { echo "No option selected"; return; }
     else
-        for CHOICE in $CHOICES; do
-            case "$CHOICE" in
+        for CHAIN in $CHAINS; do
+            case "$CHAIN" in
             "mainnet")
                 [ -f "mainnet/mainnet.env" ] || { echo "Error: user mainnet.env file not found"; return 1; }
                 source mainnet/mainnet.env
@@ -102,26 +102,20 @@ node-install() {
                 npm install -g @celo/celocli
                 ;;
             *)
-                echo "$CHOICE not available yet" >&2
+                echo "$CHAIN not available yet" >&2
                 return
                 ;;
             esac
 
-            if [ -z $DATABASE_PATH ]; then
-                COMPOSE_PROJECT_NAME=$CHOICE \
-                COMPOSE_FILE=$CHOICE/$CHOICE.yml \
-                docker compose --env-file $CHOICE/$CHOICE.env up -d --remove-orphans --build
-            else
-                COMPOSE_PROJECT_NAME=$CHOICE \
-                COMPOSE_FILE=$CHOICE/$CHOICE.yml \
-                COMPOSE_PROFILES=create-volume \
-                docker compose --env-file $CHOICE/$CHOICE.env up -d --remove-orphans --build
-            fi
+            [ -z $DATABASE_PATH ] && docker volume create ${CHAIN}_data
+            COMPOSE_PROJECT_NAME=$CHAIN \
+            COMPOSE_FILE=$CHAIN/$CHAIN.yml \
+            docker compose --env-file $CHAIN/$CHAIN.env up -d --remove-orphans --build
 
             if [ ! -z "$HOST" ]; then
                 reverseproxy-check || { echo "Error: reverse proxy not running"; return 1; }
 
-                case $CHOICE in
+                case $CHAIN in
                     "arbitrum-one")
                         docker network connect reverse-proxy arbitrum-one-nitro 
                     ;;
@@ -129,20 +123,20 @@ node-install() {
                         docker network connect reverse-proxy optimism-op-geth
                     ;;
                     *)
-                        docker network connect reverse-proxy $CHOICE
+                        docker network connect reverse-proxy $CHAIN
                     ;;
                 esac
 
                 if [ ! -z $WHITELIST ]; then
                     VHOST_PATH=/var/lib/docker/volumes/reverse-proxy_vhost/_data
                     for (( j=0; j<${#WHITELIST[@]}; j++ )); do
-                        echo "allow ${WHITELIST[$j]};" >> ${VHOST_PATH}/${SUBDOMAIN:-$CHOICE}.${HOST}
+                        echo "allow ${WHITELIST[$j]};" >> ${VHOST_PATH}/${SUBDOMAIN:-$CHAIN}.${HOST}
                     done
-                    echo "deny all;" >> ${VHOST_PATH}/${SUBDOMAIN:-$CHOICE}.${HOST}
+                    echo "deny all;" >> ${VHOST_PATH}/${SUBDOMAIN:-$CHAIN}.${HOST}
                 fi
             fi
 
-            unset HOST SUBDOMAIN DATABASE_PATH WHITELIST
+            unset HOST SUBDOMAIN WHITELIST DATABASE_PATH
         done
     fi
 
