@@ -2,6 +2,9 @@ volumes:
   config:
     external: true
     name: ${COMPOSE_PROJECT_NAME}_config
+  data:
+    external: true
+    name: ${COMPOSE_PROJECT_NAME}_data
 
 networks:
   gnosis:
@@ -16,8 +19,8 @@ services:
     networks:
       - gnosis
     volumes:
-      - config:/home/erigon/.config
-      - /data/gnosis:/home/erigon/.local/share/erigon
+      - ${CONFIG_PATH:-config}:/home/erigon/.config
+      - ${DATABASE_PATH:-data}:/home/erigon/.local/share/erigon
     ports:
       - 30313:30303/tcp # eth/66 peering
       - 30313:30303/udp # eth/66 peering
@@ -40,7 +43,7 @@ services:
     mem_swappiness: 0
     user: ${ERIGON_UID:-1000}:${ERIGON_GID:-1000}
     environment:
-      VIRTUAL_HOST: gnosis.${HOST}
+      VIRTUAL_HOST: ${SUBDOMAIN:-gnosis}.${HOST}
       VIRTUAL_PORT: 8545
-      LETSENCRYPT_HOST: gnosis.${HOST}
+      LETSENCRYPT_HOST: ${SUBDOMAIN:-gnosis}.${HOST}
       

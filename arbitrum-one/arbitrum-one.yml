@@ -1,6 +1,12 @@
 networks:
   arbitrum-one:
     name: arbitrum-one
+  nitro-data:
+    external: true
+    name: ${COMPOSE_PROJECT_NAME}_nitro-data
+  classic-data:
+    external: true
+    name: ${COMPOSE_PROJECT_NAME}_classic-data
 
 services:
   arbitrum-one-nitro:
@@ -11,9 +17,8 @@ services:
     user: root
     networks:
       - arbitrum-one
-      - mainnet
     volumes:
-      - /data/arbitrum-one/nitro:/home/user/.arbitrum
+      - ${NITRO_DATABASE_PATH:-nitro-data}:/home/user/.arbitrum
     ports:
       - 127.0.0.1:8547:8547/tcp # http
     expose:
@@ -36,9 +41,9 @@ services:
       - --ws.origins=*
       # - --ws.port=8547
     environment:
-      LETSENCRYPT_HOST: arbitrum-one.${HOST}
+      LETSENCRYPT_HOST: ${SUBDOMAIN:-arbitrum-one}.${HOST}
       VIRTUAL_HOST_MULTIPORTS: |-
-        arbitrum-one.${HOST}:
+        ${SUBDOMAIN:-arbitrum-one}.${HOST}:
           "/":
             port: 8547
             dest: "/"
@@ -55,7 +60,7 @@ services:
     networks:
       - arbitrum-one
     volumes:
-      - /data/arbitrum-one/classic:/home/user/.arbitrum/mainnet
+      - ${CLASSIC_DATABASE_PATH:-classic-data}:/home/user/.arbitrum/mainnet
     expose:
       - 8547 # http
       - 8548 # ws

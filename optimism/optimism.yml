@@ -1,9 +1,29 @@
 networks:
   optimism:
     name: optimism
-  mainnet:
+
+volumes:
+  config:
     external: true
-    name: mainnet
+    name: ${COMPOSE_PROJECT_NAME}_config
+  scripts:
+    external: true
+    name: ${COMPOSE_PROJECT_NAME}_scripts
+  shared:
+    external: true
+    name: ${COMPOSE_PROJECT_NAME}_shared
+  downloads:
+    external: true
+    name: ${COMPOSE_PROJECT_NAME}_downloads
+  influxdb:
+    external: true
+    name: ${COMPOSE_PROJECT_NAME}_influxdb
+  l2geth:
+    external: true
+    name: ${COMPOSE_PROJECT_NAME}_l2geth
+  op-geth:
+    external: true
+    name: ${COMPOSE_PROJECT_NAME}_op-geth
 
 services:
   l2geth:
@@ -18,11 +38,11 @@ services:
       - -c
       - "/scripts/init-l2geth.sh && /scripts/start-l2geth.sh"
     env_file:
-      - ../.env.user
+      - optimism.env
       - ./envs/l2geth.env
     volumes:
-      - /data/optimism/l2geth:/geth
-      - /data/optimism/scripts/:/scripts/
+      - ${L2GETH_DATABASE_PATH:-l2geth}:/geth
+      - ${SCRIPTS_PATH:-scripts}:/scripts/
     # ports:
     #   - 127.0.0.1:9991:8545 # http
     #   - 127.0.0.1:9992:8546 # ws
@@ -41,13 +61,13 @@ services:
     stop_grace_period: 5m
     entrypoint: /scripts/start-op-geth.sh
     env_file:
-      - ../.env.user
+      - optimism.env
       - ./envs/op-geth.env
     volumes:
-      - /data/optimism/config:/chainconfig
-      - /data/optimism/scripts/:/scripts
-      - /data/optimism/shared:/shared
-      - /data/optimism/op_geth:/geth
+      - ${CONFIG_PATH:-config}:/chainconfig
+      - ${SCRIPTS_PATH:-scripts}:/scripts
+      - ${SHARED_PATH:-shared}:/shared
+      - ${OPGETH_DATABASE_PATH:-op-geth}:/geth
     ports:
       - 39393:39393/udp # p2p
       - 39393:39393/tcp # p2p
@@ -61,9 +81,15 @@ services:
     networks:
       - optimism
     environment:
-      VIRTUAL_HOST: optimism.${HOST}
-      VIRTUAL_PORT: 8545
-      LETSENCRYPT_HOST: optimism.${HOST}
+      LETSENCRYPT_HOST: ${SUBDOMAIN:-optimism}.${HOST}
+      VIRTUAL_HOST_MULTIPORTS: |-
+        ${SUBDOMAIN:-optimism}.${HOST}:
+          "/":
+            port: 8545
+            dest: "/"
+          "/ws":
+            port: 8546
+            dest: "/"
 
   op-node:
     image: us-docker.pkg.dev/oplabs-tools-artifacts/images/op-node:${OP_NODE_TAG:-v1.7.7}
@@ -74,12 +100,12 @@ services:
     stop_grace_period: 5m
     entrypoint: /scripts/start-op-node.sh
     env_file:
-      - ../.env.user
+      - optimism.env
       - ./envs/op-node.env
     volumes:
-      - /data/optimism/config:/chainconfig
-      - /data/optimism/scripts:/scripts
-      - /data/optimism/shared:/shared
+      - ${CONFIG_PATH:-config}:/chainconfig
+      - ${SCRIPTS_PATH:-scripts}:/scripts
+      - ${SHARED_PATH:-shared}:/shared
     ports:
       - 9003:9003/udp # p2p
       - 9003:9003/tcp # p2p
@@ -90,7 +116,6 @@ services:
       - "host.docker.internal:host-gateway"
     networks:
       - optimism
-      - mainnet
 
   bedrock-init:
     build:
@@ -99,14 +124,14 @@ services:
     container_name: ${COMPOSE_PROJECT_NAME}-bedrock-init
     entrypoint: /scripts/init-bedrock.sh
     env_file:
-      - ../.env.user
+      - optimism.env
       - ./envs/op-geth.env
     volumes:
-      - /data/optimism/scripts:/scripts
-      - /data/optimism/shared:/shared
-      - /data/optimism/op_geth:/geth
-      - /data/optimism/l2geth:/legacy-geth
-      - /data/optimism/downloads:/downloads
+      - ${SCRIPTS_PATH:-scripts}:/scripts
+      - ${SHARED_PATH:-shared}:/shared
+      - ${OPGETH_DATABASE_PATH:-op-geth}:/geth
+      - ${L2GETH_DATABASE_PATH:-l2geth}:/legacy-geth
+      - ${DOWNLOADS_PATH:-downloads}:/downloads
     networks:
       - optimism
 
@@ -115,11 +140,11 @@ services:
     container_name: ${COMPOSE_PROJECT_NAME}-influxdb
     restart: unless-stopped
     env_file:
-      - ../.env.user
+      - optimism.env
       - ./envs/influxdb.env
     volumes:
-      - /data/optimism/scripts/influx_init.iql:/docker-entrypoint-initdb.d/influx_init.iql
-      - /data/optimism/influxdb:/var/lib/influxdb
+      - ${SCRIPTS_PATH:-scripts}/influx_init.iql:/docker-entrypoint-initdb.d/influx_init.iql
+      - ${INFLUXDB_PATH:-influxdb}:/var/lib/influxdb
     # ports:
     #   - 8086:8086
     expose:

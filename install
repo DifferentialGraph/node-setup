@@ -60,40 +60,64 @@ node-install() {
             "mainnet")
                 [ -f "mainnet/mainnet.env" ] || { echo "Error: user mainnet.env file not found"; return 1; }
                 source mainnet/mainnet.env
-                docker volume create mainnet_config
-                cp mainnet/config.yaml /var/lib/docker/volumes/mainnet_config/_data/
+
+                [ -z $CONFIG_PATH ] && docker volume create mainnet_config
+                cp mainnet/config.yaml ${CONFIG_PATH:-/var/lib/docker/volumes/mainnet_config/_data/}
+                
+                [ -z $DATABASE_PATH ] && docker volume create mainnet_data
                 ;;
             "arbitrum-one")
                 [ -f "arbitrum-one/arbitrum-one.env" ] || { echo "Error: user arbitrum-one.env file not found"; return 1; }
                 source arbitrum-one/arbitrum-one.env
-                curl https://snapshot.arbitrum.foundation/arb1/classic-archive.tar | tar -xv -C  /data/arbitrum-one/classic
+
+                [ -z $CLASSIC_DATABASE_PATH ] && docker volume create arbitrum-one_classic-data
+                curl https://snapshot.arbitrum.foundation/arb1/classic-archive.tar | tar -xv -C  ${CLASSIC_DATABASE_PATH:-"/var/lib/docker/volumes/arbitrum-one_classic-data/_data/"}
+                
+                [ -z $NITRO_DATABASE_PATH ] && docker volume create arbitrum-one_nitro-data
                 ;;
             "matic")
                 [ -f "matic/matic.env" ] || { echo "Error: user matic.env file not found"; return 1; }
                 source matic/matic.env
-                docker volume create matic_config
-                cp matic/config.yaml /var/lib/docker/volumes/matic_config/_data/
+
+                [ -z $CONFIG_PATH ] && docker volume create matic_config
+                cp matic/config.yaml ${CONFIG_PATH:-/var/lib/docker/volumes/matic_config/_data/}
+                
+                [ -z $DATABASE_PATH ] && docker volume create matic_data
                 ;;
             "optimism")
                 [ -f "optimism/optimism.env" ] || { echo "Error: user optimism.env file not found"; return 1; }
                 source optimism/optimism.env
-                cp optimism/scripts/* /data/optimism/scripts/
+
+                [ -z $SCRIPTS_PATH ] && docker volume create optimism_scripts
+                cp optimism/scripts/* ${SCRIPTS_PATH:-/var/lib/docker/volumes/optimism_scripts/_data/}
+
+                [ -z $CONFIG_PATH ] && docker volume create optimism_config
+                [ -z $SHARED_PATH ] && docker volume create optimism_shared
+                [ -z $DOWNLOADS_PATH ] && docker volume create optimism_downloads
+                [ -z $INFLUXDB_PATH ] && docker volume create optimism_influxdb
+                [ -z $OPGETH_DATABASE_PATH ] && docker volume create optimism_opgeth
+                [ -z $L2GETH_DATABASE_PATH ] && docker volume create optimism_l2geth
                 ;;
             "avalanche")
                 [ -f "avalanche/avalanche.env" ] || { echo "Error: user avalanche.env file not found"; return 1; }
                 source avalanche/avalanche.env
-                # config
-                docker volume create avalanche_config
-                cp avalanche/node.json /var/lib/docker/volumes/avalanche_config/_data/
-                # C chain config
-                docker volume create avalanche-c_config
-                cp avalanche/config.json /var/lib/docker/volumes/avalanche-c_config/_data/
+
+                [ -z $CONFIG_PATH ] && docker volume create avalanche_config
+                cp avalanche/node.json ${CONFIG_PATH:-/var/lib/docker/volumes/avalanche_config/_data/}
+
+                [ -z $CCONFIG_PATH ] && docker volume create avalanche_c-config
+                cp avalanche/config.json ${CCONFIG_PATH:-/var/lib/docker/volumes/avalanche_c-config/_data/}
+                
+                [ -z $DATABASE_PATH ] && docker volume create avalanche_data
                 ;;
             "gnosis")
                 [ -f "gnosis/gnosis.env" ] || { echo "Error: user gnosis.env file not found"; return 1; }
                 source gnosis/gnosis.env
-                docker volume create gnosis_config
-                cp gnosis/config.yaml /var/lib/docker/volumes/gnosis_config/_data/
+
+                [ -z $CONFIG_PATH ] && docker volume create gnosis_config
+                cp gnosis/config.yaml ${CONFIG_PATH:-/var/lib/docker/volumes/gnosis_config/_data/}
+                
+                [ -z $DATABASE_PATH ] && docker volume create gnosis_data
                 ;;
             "celo")
                 [ -f "celo/celo.env" ] || { echo "Error: user celo.env file not found"; return 1; }
@@ -107,10 +131,21 @@ node-install() {
                 ;;
             esac
 
-            [ -z $DATABASE_PATH ] && docker volume create ${CHAIN}_data
             COMPOSE_PROJECT_NAME=$CHAIN \
             COMPOSE_FILE=$CHAIN/$CHAIN.yml \
             docker compose --env-file $CHAIN/$CHAIN.env up -d --remove-orphans --build
+
+            if [ ! -z $MAINNET_LOCAL_NETWORK ]; then
+                case $CHAIN in
+                    "arbitrum-one")
+                        docker network connect $MAINNET_LOCAL_NETWORK arbitrum-one-nitro
+                        docker network connect $MAINNET_LOCAL_NETWORK arbitrum-one-classic
+                    ;;
+                    "optimism")
+                        docker network connect $MAINNET_LOCAL_NETWORK optimism-op-node
+                    ;;
+                esac 
+            fi
 
             if [ ! -z "$HOST" ]; then
                 reverseproxy-check || { echo "Error: reverse proxy not running"; return 1; }
@@ -136,7 +171,7 @@ node-install() {
                 fi
             fi
 
-            unset HOST SUBDOMAIN WHITELIST DATABASE_PATH
+            # unset HOST SUBDOMAIN WHITELIST DATABASE_PATH MAINNET_LOCAL_NETWORK
         done
     fi
 

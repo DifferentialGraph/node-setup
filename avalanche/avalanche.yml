@@ -4,7 +4,10 @@ volumes:
     name: ${COMPOSE_PROJECT_NAME}_config
   c-config:
     external: true
-    name: ${COMPOSE_PROJECT_NAME}-c_config
+    name: ${COMPOSE_PROJECT_NAME}_c-config
+  data:
+    external: true
+    name: ${COMPOSE_PROJECT_NAME}_data
 
 networks:
   avalanche:
@@ -24,9 +27,9 @@ services:
       # - 9650
       - 9651
     volumes:
-      - /data/avalanche:/root/.avalanchego
-      - config:/root/.avalanchego/configs/
-      - c-config:/root/.avalanchego/configs/chains/C
+      - ${DATABASE_PATH:-data}:/root/.avalanchego
+      - ${CONFIG_PATH:-config}:/root/.avalanchego/configs/
+      - ${CCONFIG_PATH:-c-config}:/root/.avalanchego/configs/chains/C
     command: 
       [
         "/avalanchego/build/avalanchego",
@@ -37,9 +40,9 @@ services:
         "--http-allowed-hosts=*"
       ]
     environment:
-      LETSENCRYPT_HOST: avalanche.${HOST}
+      LETSENCRYPT_HOST: ${SUBDOMAIN:-avalanche}.${HOST}
       VIRTUAL_HOST_MULTIPORTS: |-
-        avalanche.${HOST}:
+        ${SUBDOMAIN:-avalanche}.${HOST}:
           "/":
             port: 9650
             dest: "/ext/bc/C/rpc"

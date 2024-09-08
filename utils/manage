@@ -7,49 +7,22 @@ node-start() {
         
     case $1 in
         "mainnet")
-            if [ "$(docker volume ls -f name=mainnet_config | awk '{print $NF}' | grep -E '^'mainnet_config'$')" ]; then
-                rm -rf /var/lib/docker/volumes/mainnet_config/_data/config.yaml
-            else
-                docker volume create mainnet_config
-            fi
-            cp $NODE_DIR/mainnet/config.yaml /var/lib/docker/volumes/mainnet_config/_data/
+            cp $NODE_DIR/mainnet/config.yaml ${CONFIG_PATH:-/var/lib/docker/volumes/mainnet_config/_data/}
             ;;
         "gnosis")
-            if [ "$(docker volume ls -f name=gnosis_config | awk '{print $NF}' | grep -E '^'gnosis_config'$')" ]; then
-                rm -rf /var/lib/docker/volumes/gnosis_config/_data/config.yaml
-            else
-                docker volume create gnosis_config
-            fi
-            cp $NODE_DIR/gnosis/config.yaml /var/lib/docker/volumes/gnosis_config/_data/
+            cp $NODE_DIR/gnosis/config.yaml ${CONFIG_PATH:-/var/lib/docker/volumes/gnosis_config/_data/}
             ;;
         "matic")
-            if [ "$(docker volume ls -f name=matic_config | awk '{print $NF}' | grep -E '^'matic_config'$')" ]; then
-                rm -rf /var/lib/docker/volumes/matic_config/_data/config.yaml
-            else
-                docker volume create matic_config
-            fi
-            cp $NODE_DIR/matic/config.yaml /var/lib/docker/volumes/matic_config/_data/
+            cp $NODE_DIR/matic/config.yaml ${CONFIG_PATH:-/var/lib/docker/volumes/matic_config/_data/}
             ;;
         "arbitrum-one")
             ;;
         "avalanche")
-            if [ "$(docker volume ls -f name=avalanche_config | awk '{print $NF}' | grep -E '^'avalanche_config'$')" ]; then
-                rm -rf /var/lib/docker/volumes/avalanche_config/_data/config.json
-            else
-                docker volume create avalanche_config
-            fi
-            cp $NODE_DIR/avalanche/node.json /var/lib/docker/volumes/avalanche_config/_data/
-
-            if [ "$(docker volume ls -f name=avalanche-c_config | awk '{print $NF}' | grep -E '^'avalanche-c_config'$')" ]; then
-                rm -rf /var/lib/docker/volumes/avalanche-c_config/_data/config.json
-            else
-                docker volume create avalanche-c_config
-            fi
-            cp $NODE_DIR/avalanche/config.json /var/lib/docker/volumes/avalanche-c_config/_data/
+            cp $NODE_DIR/avalanche/node.json ${CONFIG_PATH:-/var/lib/docker/volumes/avalanche_config/_data/}
+            cp $NODE_DIR/avalanche/config.json ${CCONFIG_PATH:-/var/lib/docker/volumes/avalanche_c-config/_data/}
             ;;
         "optimism")
-            rm -rf /data/optimism/scripts/*
-            cp $NODE_DIR/optimism/scripts/* /data/optimism/scripts/
+            cp $NODE_DIR/optimism/scripts/* ${SCRIPTS_PATH:-/var/lib/docker/volumes/optimism_scripts/_data/}
             ;;
         *)
             echo "Chain not supported yet!"
@@ -65,6 +38,21 @@ node-start() {
     COMPOSE_FILE=$NODE_DIR/$1/$1.yml \
     docker compose --env-file $NODE_DIR/$1/$1.env up -d --remove-orphans --build
 
+    if [ ! -z $MAINNET_LOCAL_NETWORK ]; then
+        case $1 in
+            "arbitrum-one")
+                nets=$(docker container inspect --format '{{range $net,$v := .NetworkSettings.Networks}}{{printf "%s\n" $net}}{{end}}' arbitrum-one-nitro)
+                [[ ! ${nets[@]} =~ "$MAINNET_LOCAL_NETWORK" ]] && docker network connect $MAINNET_LOCAL_NETWORK arbitrum-one-nitro
+                nets=$(docker container inspect --format '{{range $net,$v := .NetworkSettings.Networks}}{{printf "%s\n" $net}}{{end}}' arbitrum-one-classic)
+                [[ ! ${nets[@]} =~ "$MAINNET_LOCAL_NETWORK" ]] && docker network connect $MAINNET_LOCAL_NETWORK arbitrum-one-classic
+            ;;
+            "optimism")
+                nets=$(docker container inspect --format '{{range $net,$v := .NetworkSettings.Networks}}{{printf "%s\n" $net}}{{end}}' optimism-op-node)
+                [[ ! ${nets[@]} =~ "$MAINNET_LOCAL_NETWORK" ]] && docker network connect $MAINNET_LOCAL_NETWORK optimism-op-node
+            ;;
+        esac 
+    fi
+
     if [ ! -z "$HOST" ]; then
         case $1 in
             "arbitrum-one")
@@ -77,6 +65,7 @@ node-start() {
                 container=$1
             ;;
         esac
+
         nets=$(docker container inspect --format '{{range $net,$v := .NetworkSettings.Networks}}{{printf "%s\n" $net}}{{end}}' $container)
         if [[ ! ${nets[@]} =~ "reverse-proxy" ]]; then
             docker network connect reverse-proxy $container

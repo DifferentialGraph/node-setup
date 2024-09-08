@@ -19,7 +19,7 @@ services:
     networks:
       - mainnet
     volumes:
-      - config:/home/erigon/.config
+      - ${CONFIG_PATH:-config}:/home/erigon/.config
       - ${DATABASE_PATH:-data}:/home/erigon/.local/share/erigon
     ports:
       - 30303:30303/tcp # eth/66 peering

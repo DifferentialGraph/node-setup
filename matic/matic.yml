@@ -2,6 +2,9 @@ volumes:
   config:
     external: true
     name: ${COMPOSE_PROJECT_NAME}_config
+  data:
+    external: true
+    name: ${COMPOSE_PROJECT_NAME}_data
 
 networks:
   matic:
@@ -16,8 +19,8 @@ services:
     networks:
       - matic
     volumes:
-      - config:/home/erigon/.config
-      - /data/matic:/home/erigon/.local/share/erigon
+      - ${CONFIG_PATH:-config}:/home/erigon/.config
+      - ${DATABASE_PATH:-data}:/home/erigon/.local/share/erigon
     ports:
       - 30323:30303/tcp # eth/66 peering
       - 30323:30303/udp # eth/66 peering
@@ -40,6 +43,6 @@ services:
     mem_swappiness: 0
     user: ${ERIGON_UID:-1000}:${ERIGON_GID:-1000}
     environment:
-      VIRTUAL_HOST: matic.${HOST}
+      VIRTUAL_HOST: ${SUBDOMAIN:-matic}.${HOST}
       VIRTUAL_PORT: 8545
-      LETSENCRYPT_HOST: matic.${HOST}
+      LETSENCRYPT_HOST: ${SUBDOMAIN:-matic}.${HOST}
