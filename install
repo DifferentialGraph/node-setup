@@ -50,6 +50,8 @@ node-install() {
         "optimism" "Optimism" OFF \
         "avalanche" "Avalanche" OFF \
         "celo" "Celo" OFF \
+        "linea" "Linea" OFF \
+        "base" "Base" OFF \
         "fantom" "Fantom" OFF 3>&1 1>&2 2>&3) || { echo "User exit"; return; }
 
     if [ -z "$CHAINS" ]; then
@@ -122,8 +124,25 @@ node-install() {
             "celo")
                 [ -f "celo/celo.env" ] || { echo "Error: user celo.env file not found"; return 1; }
                 source celo/celo.env
-                apt install libusb-1.0-0-dev libudev-dev
-                npm install -g @celo/celocli
+
+                # apt install libusb-1.0-0-dev libudev-dev
+                # npm install -g @celo/celocli
+                [ -z $DATABASE_PATH ] && docker volume create celo_data
+                ;;
+            "base")
+                [ -f "base/base.env" ] || { echo "Error: user base.env file not found"; return 1; }
+                source base/base.env
+
+                [ -z $DATABASE_PATH ] && docker volume create base_data
+                SNAP_LATEST=$(curl https://mainnet-archive-snapshots.base.org/latest)
+                cd ${DATABASE_PATH:-"/var/lib/docker/volumes/base_data/_data/"} && \
+                wget https://mainnet-archive-snapshots.base.org/$SNAP_LATEST && \
+                tar –xvzf $SNAP_LATEST && \
+                rm -rf $SNAP_LATEST
+                ;;
+            "linea")
+                [ -f "linea/linea.env" ] || { echo "Error: user linea.env file not found"; return 1; }
+                source linea/linea.env
                 ;;
             *)
                 echo "$CHAIN not available yet" >&2
@@ -143,6 +162,11 @@ node-install() {
                     ;;
                     "optimism")
                         docker network connect $MAINNET_LOCAL_NETWORK optimism-op-node
+                        docker network connect $MAINNET_LOCAL_NETWORK optimism-l2geth
+                    ;;
+                    "base")
+                        docker network connect $MAINNET_LOCAL_NETWORK base-execution
+                        docker network connect $MAINNET_LOCAL_NETWORK base-node
                     ;;
                 esac 
             fi
@@ -156,6 +180,9 @@ node-install() {
                     ;;
                     "optimism")
                         docker network connect reverse-proxy optimism-op-geth
+                    ;;
+                    "base")
+                        docker network connect reverse-proxy base-execution
                     ;;
                     *)
                         docker network connect reverse-proxy $CHAIN

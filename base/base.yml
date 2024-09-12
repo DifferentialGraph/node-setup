@@ -1,0 +1,57 @@
+volumes:
+  data:
+    external: true
+    name: ${COMPOSE_PROJECT_NAME}_data
+
+networks:
+  base:
+    name: base
+
+services:
+  execution:
+    build:
+      context: ./dockerfiles
+      dockerfile: Dockerfile
+    container_name: ${COMPOSE_PROJECT_NAME}-execution
+    restart: unless-stopped
+    expose:
+      - 8545       # RPC
+      - 8546       # websocket
+      - 6060       # metrics
+    command: [ "bash", "./execution-entrypoint" ]
+    volumes:
+      - ${DATABASE_PATH:-data}:/data
+    env_file:
+      - base.env
+    networks:
+      - base
+    environment:
+      LETSENCRYPT_HOST: ${SUBDOMAIN:-base}.${HOST}
+      VIRTUAL_HOST_MULTIPORTS: |-
+        ${SUBDOMAIN:-base}.${HOST}:
+          "/":
+            port: 8545
+            dest: "/"
+          "/ws":
+            port: 8546
+            dest: "/"
+  node:
+    build:
+      context: ./dockerfiles
+      dockerfile: Dockerfile
+    container_name: ${COMPOSE_PROJECT_NAME}-node
+    restart: unless-stopped
+    depends_on:
+      - execution
+    ports:
+      - 9222:9222     # P2P TCP
+      - 9222:9222/udp # P2P UDP
+    expose:
+      - 8545     # RPC
+      - 7300     # metrics
+      - 6060     # pprof
+    command: [ "bash", "./op-node-entrypoint" ]
+    env_file:
+      - base.env
+    networks:
+      - base

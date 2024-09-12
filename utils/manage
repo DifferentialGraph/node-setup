@@ -24,6 +24,12 @@ node-start() {
         "optimism")
             cp $NODE_DIR/optimism/scripts/* ${SCRIPTS_PATH:-/var/lib/docker/volumes/optimism_scripts/_data/}
             ;;
+        "celo")
+            ;;
+        "base")
+            ;;
+        "linea")
+            ;;
         *)
             echo "Chain not supported yet!"
             return
@@ -49,6 +55,14 @@ node-start() {
             "optimism")
                 nets=$(docker container inspect --format '{{range $net,$v := .NetworkSettings.Networks}}{{printf "%s\n" $net}}{{end}}' optimism-op-node)
                 [[ ! ${nets[@]} =~ "$MAINNET_LOCAL_NETWORK" ]] && docker network connect $MAINNET_LOCAL_NETWORK optimism-op-node
+                nets=$(docker container inspect --format '{{range $net,$v := .NetworkSettings.Networks}}{{printf "%s\n" $net}}{{end}}' optimism-l2geth)
+                [[ ! ${nets[@]} =~ "$MAINNET_LOCAL_NETWORK" ]] && docker network connect $MAINNET_LOCAL_NETWORK optimism-l2geth
+            ;;
+            "base")
+                nets=$(docker container inspect --format '{{range $net,$v := .NetworkSettings.Networks}}{{printf "%s\n" $net}}{{end}}' base-execution)
+                [[ ! ${nets[@]} =~ "$MAINNET_LOCAL_NETWORK" ]] && docker network connect $MAINNET_LOCAL_NETWORK base-execution
+                nets=$(docker container inspect --format '{{range $net,$v := .NetworkSettings.Networks}}{{printf "%s\n" $net}}{{end}}' base-node)
+                [[ ! ${nets[@]} =~ "$MAINNET_LOCAL_NETWORK" ]] && docker network connect $MAINNET_LOCAL_NETWORK base-node
             ;;
         esac 
     fi
@@ -60,6 +74,9 @@ node-start() {
             ;;
             "optimism")
                 container=$1-op-geth
+            ;;
+            "base")
+                container=$1-execution
             ;;
             *)
                 container=$1
@@ -135,8 +152,8 @@ node-monitor() {
             tmux new-window -t $1:3 -n 'l2geth' && tmux send-keys -t 'l2geth' "docker logs ${1}-l2geth --tail 10 -f | pino-pretty -c -t" C-m
         ;;
         "celo")
-            tmux rename-window -t 0 'celo-cli' && tmux send-keys -t 'celo-cli' "celocli node:synced" C-m
-            tmux new-window -t $1:1 -n 'celo-log' && tmux send-keys -t 'celo-log' "docker logs ${1} --tail 10 -f | pino-pretty -c -t" C-m
+            tmux rename-window -t 0 'celo-log' && tmux send-keys -t 'celo-log' "docker logs celo --tail 10 -f | pino-pretty -c -t" C-m
+            tmux new-window -t $1:1 -n 'celo-cli' && tmux send-keys -t 'celo-cli' "docker exec -it celo /bin/bash" C-m
         ;;
         "fantom")
             tmux rename-window -t 0 'fantom-cli' && tmux send-keys -t 'fantom-cli' "docker exec -it fantom /bin/bash" C-m

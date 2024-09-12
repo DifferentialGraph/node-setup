@@ -1,12 +1,12 @@
 #!/bin/sh
-set -eou
+set -e
 
-if [ "$OP_NETWORK_NAME" != "op-mainnet" ]; then
+if [ "$NETWORK_NAME" != "op-mainnet" ]; then
   echo "Stopping l2geth for a non op-mainnet chain"
   exit
 fi
 
-if [ -n "${OP_GETH_HISTORICAL_RPC+x}" ]; then
+if [ -n "${OP_GETH__HISTORICAL_RPC}" ]; then
   echo "Stopping l2geth for using an external historical RPC"
   exit
 fi
@@ -20,7 +20,7 @@ exec geth \
   --unlock=$BLOCK_SIGNER_ADDRESS \
   --mine \
   --miner.etherbase=$BLOCK_SIGNER_ADDRESS \
-  --gcmode=$OP_NODE_TYPE \
+  --gcmode=$NODE_TYPE \
   --metrics \
   --metrics.influxdb \
   --metrics.influxdb.endpoint=http://influxdb:8086 \

@@ -44,6 +44,12 @@ services:
     mem_swappiness: 0
     user: ${ERIGON_UID:-1000}:${ERIGON_GID:-1000}
     environment:
-      VIRTUAL_HOST: ${SUBDOMAIN:-mainnet}.${HOST}
-      VIRTUAL_PORT: 8545
       LETSENCRYPT_HOST: ${SUBDOMAIN:-mainnet}.${HOST}
+      VIRTUAL_HOST_MULTIPORTS: |-
+        ${SUBDOMAIN:-mainnet}.${HOST}:
+          "/":
+            port: 8545
+            dest: "/"
+          "/beacon":
+            port: 5555
+            dest: "/"

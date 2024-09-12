@@ -30,8 +30,6 @@ services:
     image: ethereumoptimism/l2geth:${L2GETH_TAG:-latest}
     container_name: ${COMPOSE_PROJECT_NAME}-l2geth
     restart: on-failure
-    depends_on:
-      - influxdb
     stop_grace_period: 5m
     entrypoint: 
       - /bin/sh
@@ -43,9 +41,6 @@ services:
     volumes:
       - ${L2GETH_DATABASE_PATH:-l2geth}:/geth
       - ${SCRIPTS_PATH:-scripts}:/scripts/
-    # ports:
-    #   - 127.0.0.1:9991:8545 # http
-    #   - 127.0.0.1:9992:8546 # ws
     expose:
       - 8545 # http
       - 8546 # ws
@@ -53,11 +48,9 @@ services:
       - optimism
 
   op-geth:
-    image: us-docker.pkg.dev/oplabs-tools-artifacts/images/op-geth:${OP_GETH_TAG:-v1.101315.2}
+    image: us-docker.pkg.dev/oplabs-tools-artifacts/images/op-geth:${OP_GETH_TAG:-latest}
     container_name: ${COMPOSE_PROJECT_NAME}-op-geth
     restart: unless-stopped
-    depends_on:
-      - influxdb
     stop_grace_period: 5m
     entrypoint: /scripts/start-op-geth.sh
     env_file:
@@ -92,11 +85,9 @@ services:
             dest: "/"
 
   op-node:
-    image: us-docker.pkg.dev/oplabs-tools-artifacts/images/op-node:${OP_NODE_TAG:-v1.7.7}
+    image: us-docker.pkg.dev/oplabs-tools-artifacts/images/op-node:${OP_NODE_TAG:-latest}
     container_name: ${COMPOSE_PROJECT_NAME}-op-node
     restart: unless-stopped
-    depends_on:
-      - op-geth
     stop_grace_period: 5m
     entrypoint: /scripts/start-op-node.sh
     env_file:

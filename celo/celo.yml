@@ -1,7 +1,7 @@
-version: '3.9'
-
 volumes:
   data:
+    external: true
+    name: ${COMPOSE_PROJECT_NAME}_data
 
 networks:
   celo:
@@ -22,7 +22,7 @@ services:
       - 8545 # http
       - 8546 # ws
     volumes:
-      - data:/root/.celo/mainnet
+      - ${DATABASE_PATH:-data}:/root/.celo/mainnet
     command: |
       --verbosity 3
       --syncmode full
@@ -33,11 +33,18 @@ services:
       --http
       --http.addr 0.0.0.0
       --http.api eth,net,web3,debug,admin,personal
-      --datadir /root/.celo/mainnet
       --light.serve 90
       --light.maxpeers 1000 
       --maxpeers 1100
-    # environment:
-    #   VIRTUAL_HOST: celo.differentialgraph.xyz
-    #   LETSENCRYPT_HOST: celo.differentialgraph.xyz
-    #   VIRTUAL_PORT: 8545
+      --datadir /root/.celo/mainnet
+    environment:
+      LETSENCRYPT_HOST: ${SUBDOMAIN:-celo}.${HOST}
+      VIRTUAL_HOST_MULTIPORTS: |-
+        ${SUBDOMAIN:-celo}.${HOST}:
+          "/":
+            port: 8545
+            dest: "/"
+          "/ws":
+            port: 8546
+            dest: "/"
+            

@@ -1,5 +1,5 @@
 #!/bin/sh
-set -eou
+set -e
 
 # Wait for the Bedrock flag for this network to be set.
 echo "Waiting for Bedrock node to initialize..."
@@ -7,25 +7,25 @@ while [ ! -f /shared/initialized.txt ]; do
   sleep 1
 done
 
-if [ -z "${IS_CUSTOM_CHAIN+x}" ]; then
-  if [ "$OP_NETWORK_NAME" == "op-mainnet" ] || [ "$OP_NETWORK_NAME" == "op-goerli" ]; then
-    export EXTENDED_ARG="${EXTENDED_ARG:-} --rollup.historicalrpc=${OP_GETH_HISTORICAL_RPC:-http://l2geth:8545} --op-network=$OP_NETWORK_NAME"
+if [ -z "${IS_CUSTOM_CHAIN}" ]; then
+  if [ "$NETWORK_NAME" == "op-mainnet" ] || [ "$NETWORK_NAME" == "op-goerli" ]; then
+    export EXTENDED_ARG="${EXTENDED_ARG:-} --rollup.historicalrpc=${OP_GETH__HISTORICAL_RPC:-http://l2geth:8545} --op-network=$NETWORK_NAME"
   else
-    export EXTENDED_ARG="${EXTENDED_ARG:-} --op-network=$OP_NETWORK_NAME"
+    export EXTENDED_ARG="${EXTENDED_ARG:-} --op-network=$NETWORK_NAME"
   fi
 fi
 
 # Init genesis if custom chain
-if [ -n "${IS_CUSTOM_CHAIN+x}" ]; then
+if [ -n "${IS_CUSTOM_CHAIN}" ]; then
   geth init --datadir="$BEDROCK_DATADIR" /chainconfig/genesis.json
 fi
 
-# Determine syncmode based on OP_NODE_TYPE
-if [ -z "${OP_GETH_SYNCMODE+x}" ]; then
-  if [ "$OP_NODE_TYPE" = "full" ]; then
-    export OP_GETH_SYNCMODE="snap"
+# Determine syncmode based on NODE_TYPE
+if [ -z "$OP_GETH__SYNCMODE" ]; then
+  if [ "$NODE_TYPE" = "full" ]; then
+    export OP_GETH__SYNCMODE="snap"
   else
-    export OP_GETH_SYNCMODE="full"
+    export OP_GETH__SYNCMODE="full"
   fi
 fi
 
@@ -47,8 +47,8 @@ exec geth \
   --metrics.influxdb \
   --metrics.influxdb.endpoint=http://influxdb:8086 \
   --metrics.influxdb.database=opgeth \
-  --syncmode="$OP_GETH_SYNCMODE" \
-  --gcmode="$OP_NODE_TYPE" \
+  --syncmode="$OP_GETH__SYNCMODE" \
+  --gcmode="$NODE_TYPE" \
   --authrpc.vhosts="*" \
   --authrpc.addr=0.0.0.0 \
   --authrpc.port=8551 \

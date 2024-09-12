@@ -15,7 +15,7 @@ networks:
 
 services:
   avalanche:
-    image: avaplatform/avalanchego:${AVALANCHE_TAG-v1.11.9}
+    image: avaplatform/avalanchego:${AVALANCHE_TAG-latest}
     container_name: ${COMPOSE_PROJECT_NAME}
     restart: unless-stopped
     stop_grace_period: 1m
