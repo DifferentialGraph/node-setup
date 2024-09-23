@@ -2,16 +2,23 @@ chain: bor-mainnet
 nat: stun 
 datadir: /home/erigon/.local/share/erigon
 ethash.dagdir: /home/erigon/.local/share/erigon/ethash 
-# externalcl: false # (v3 option)
+
+# (v3)
+# externalcl: false
+# sync.loop.block.limit: 10_000
+# batchSize: 2g
+
+# (v2)
+internalcl: true
 
 # eth/66 peering
 port: 30303
 
 # download
 torrent.port: 42069
-torrent.download.rate: 1000mb
-torrent.upload.rate: 20mb
-# sync.loop.block.limit: 10_000_000
+torrent.download.rate: 1250mb
+torrent.upload.rate: 1250mb
+
 bodies.cache: 5G 
 db.pagesize: 16k 
 batchSize: 2048MB 
@@ -33,7 +40,7 @@ http.port: 8545
 http.addr: 0.0.0.0
 http.vhosts: "*"
 http.corsdomain: "*"
-http.api: [eth, erigon, web3, debug, net, trace]
+http.api: [eth, erigon, web3, debug, net, trace] # txpool
 rpc.returndata.limit: 1100000
 # rpc.accessList: rules.json
 rpc.gascap: 300000000

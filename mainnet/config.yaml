@@ -1,16 +1,21 @@
 chain: mainnet
 datadir: /home/erigon/.local/share/erigon
+
+# (v3)
 externalcl: false
+sync.loop.block.limit: 10_000
+batchSize: 2g
+
+# (v2)
+# internalcl: true
 
 # eth/66 peering
 port: 30303
 
 # download
 torrent.port: 42069
-torrent.download.rate: 2000mb
-torrent.upload.rate: 20mb
-sync.loop.block.limit: 10_000_000
-batchSize: 1g
+torrent.download.rate: 1250mb
+torrent.upload.rate: 1250mb
 
 # gRPC Server
 private.api.addr: localhost:9090 # for modular components connections
@@ -28,7 +33,7 @@ http.port: 8545
 http.addr: 0.0.0.0
 http.vhosts: "*"
 http.corsdomain: "*"
-http.api: [eth, erigon, web3, debug, net, trace]
+http.api: [eth, erigon, web3, debug, net, trace] # txpool
 rpc.returndata.limit: 1100000
 # rpc.accessList : rules.json
 rpc.gascap: 5000000000
@@ -63,5 +68,5 @@ beacon.api.cors.allow-origins: "*"
 
 log.console.verbosity: 3
 
-# nat: stun
+nat: stun
 #no-downloader: true

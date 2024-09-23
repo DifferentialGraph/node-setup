@@ -8,7 +8,7 @@ networks:
     name: celo
 
 services:
-  celo-archive:
+  celo:
     image: us.gcr.io/celo-org/geth:mainnet
     container_name: ${COMPOSE_PROJECT_NAME}
     restart: unless-stopped

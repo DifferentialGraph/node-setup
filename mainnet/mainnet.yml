@@ -12,7 +12,7 @@ networks:
 
 services:
   mainnet:
-    image: thorax/erigon:${MAINNET_ERIGON_TAG:-latest}
+    image: erigontech/erigon:${MAINNET_ERIGON_TAG:-main-latest}
     container_name: ${COMPOSE_PROJECT_NAME}
     restart: unless-stopped
     stop_grace_period: 1m

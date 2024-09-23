@@ -7,3 +7,4 @@
 !mainnet-template.env
 !matic-template.env
 !optimism-template.env
+!optimism/envs/*
