@@ -1,24 +1,27 @@
-FROM golang:1.21 AS op
+FROM golang:1.22 AS op
 
 WORKDIR /app
 
 ENV REPO=https://github.com/ethereum-optimism/optimism.git
-ENV VERSION=v1.9.1
-ENV COMMIT=4797ddb70e05d4952685bad53e608cb5606284e6
+ENV VERSION=v1.10.2
+ENV COMMIT=8bf7ff60f34a7c5082cec5c56bed1f76cc1893ad
 RUN git clone $REPO --branch op-node/$VERSION --single-branch . && \
     git switch -c branch-$VERSION && \
     bash -c '[ "$(git rev-parse HEAD)" = "$COMMIT" ]'
 
+# Install 'just'
+RUN curl -sSfL 'https://just.systems/install.sh' | bash -s -- --to /usr/local/bin
+
 RUN cd op-node && \
     make VERSION=$VERSION op-node
 
-FROM golang:1.21 AS geth
+FROM golang:1.22 AS geth
 
 WORKDIR /app
 
 ENV REPO=https://github.com/ethereum-optimism/op-geth.git
-ENV VERSION=v1.101408.0
-ENV COMMIT=5c2e75862239c77d2873de1888ba52ee84c83178
+ENV VERSION=v1.101411.4
+ENV COMMIT=efa05b1bf5c22a60745e638ad9d4adadfe3daba9
 RUN git clone $REPO --branch $VERSION --single-branch . && \
     git switch -c branch-$VERSION && \
     bash -c '[ "$(git rev-parse HEAD)" = "$COMMIT" ]'
@@ -37,7 +40,7 @@ WORKDIR /app
 COPY --from=op /app/op-node/bin/op-node ./
 COPY --from=geth /app/build/bin/geth ./
 COPY supervisord.conf /etc/supervisor/conf.d/supervisord.conf
-COPY geth-entrypoint ./execution-entrypoint
+COPY geth/geth-entrypoint ./execution-entrypoint
 COPY op-node-entrypoint .
 
 CMD ["/usr/bin/supervisord"]
