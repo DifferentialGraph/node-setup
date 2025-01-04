@@ -1,13 +1,9 @@
 chain: mainnet
 datadir: /home/erigon/.local/share/erigon
 
-# (v3)
 externalcl: false
 sync.loop.block.limit: 10_000
 batchSize: 2g
-
-# (v2)
-# internalcl: true
 
 # eth/66 peering
 port: 30303
@@ -69,4 +65,4 @@ beacon.api.cors.allow-origins: "*"
 log.console.verbosity: 3
 
 nat: stun
-#no-downloader: true
+no-downloader: true

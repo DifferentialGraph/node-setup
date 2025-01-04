@@ -3,7 +3,7 @@ nat: stun
 datadir: /home/erigon/.local/share/erigon
 ethash.dagdir: /home/erigon/.local/share/erigon/ethash 
 
-externalcl: false
+internalcl: true
 sync.loop.block.limit: 10_000
 batchSize: 2g
 

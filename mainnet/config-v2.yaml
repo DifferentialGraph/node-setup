@@ -1,9 +1,7 @@
-chain: bor-mainnet
-nat: stun 
+chain: mainnet
 datadir: /home/erigon/.local/share/erigon
-ethash.dagdir: /home/erigon/.local/share/erigon/ethash 
 
-externalcl: false
+internalcl: true
 sync.loop.block.limit: 10_000
 batchSize: 2g
 
@@ -14,11 +12,6 @@ port: 30303
 torrent.port: 42069
 torrent.download.rate: 1250mb
 torrent.upload.rate: 1250mb
-
-bodies.cache: 5G 
-db.pagesize: 16k 
-batchSize: 2048MB 
-db.size.limit: 18t
 
 # gRPC Server
 private.api.addr: localhost:9090 # for modular components connections
@@ -38,11 +31,11 @@ http.vhosts: "*"
 http.corsdomain: "*"
 http.api: [eth, erigon, web3, debug, net, trace] # txpool
 rpc.returndata.limit: 1100000
-# rpc.accessList: rules.json
-rpc.gascap: 300000000
-rpc.batch.limit: 200000 
-ws: false
-ws.compression: true
+# rpc.accessList : rules.json
+rpc.gascap: 5000000000
+ws: true
+# ws.port: 8546
+# ws.compression: true
 
 # metric
 metrics : false
@@ -54,6 +47,22 @@ pprof: false
 pprof.addr: 0.0.0.0 
 pprof.port: 6061
 
-snap.stop : true
-bor.heimdall : https://heimdall.stakesystems.io
+# snapshots: true
 # snap.keepblocks: true
+# db.size.limit: '8TB'
+
+# beacon api
+caplin.archive: false
+caplin.backfilling: true
+caplin.backfilling.blob: true
+caplin.backfilling.blob.no-pruning: true
+beacon.api: [beacon, builder, config, debug, node, validator, lighthouse]
+beacon.api.port: 5555
+beacon.api.addr: 0.0.0.0
+beacon.api.cors.allow-origins: "*"
+# beacon.api.cors.allow-credentials: true
+
+log.console.verbosity: 3
+
+nat: stun
+# no-downloader: true
