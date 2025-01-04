@@ -1,4 +1,6 @@
 #!/bin/bash -i
+NODEDIR="$( cd "$( dirname -- $0 )" && pwd )"
+. $NODEDIR/utils/docker
 
 basics-install() {
     apt update
@@ -42,6 +44,160 @@ reverseproxy-check() {
     fi
 }
 
+node-start() {
+    ENV_FILE="${2:-$1}.env"
+
+    [ -f "$NODEDIR/$1/$1.yml" ] || { echo "Error: $1.yml file not found."; return 1; }
+    [ -f "$NODEDIR/$1/${ENV_FILE}" ] || { echo "Error: ${ENV_FILE} file not found"; return 1; }
+    source $NODEDIR/$1/${ENV_FILE}
+
+    case $1 in
+        "mainnet")
+            [ -z $CONFIG_PATH ] && ! volume-exists mainnet_config && docker volume create mainnet_config
+            if [ "${ERIGON_TAG:0:2}" = "v2" ]; then
+                cp $NODEDIR/mainnet/config-v2.yaml ${CONFIG_PATH:-/var/lib/docker/volumes/mainnet_config/_data}/config.yaml
+            else
+                cp $NODEDIR/mainnet/config.yaml ${CONFIG_PATH:-/var/lib/docker/volumes/mainnet_config/_data}/config.yaml
+            fi
+
+            [ -z $DATABASE_PATH ] && ! volume-exists mainnet_data && docker volume create mainnet_data
+            ;;
+        "gnosis")
+            [ -z $CONFIG_PATH ] && ! volume-exists gnosis_config && docker volume create gnosis_config
+            if [ "${ERIGON_TAG:0:2}" = "v2" ]; then
+                cp $NODEDIR/gnosis/config-v2.yaml ${CONFIG_PATH:-/var/lib/docker/volumes/gnosis_config/_data}/config.yaml
+            else
+                cp $NODEDIR/gnosis/config.yaml ${CONFIG_PATH:-/var/lib/docker/volumes/gnosis_config/_data}/config.yaml
+            fi
+
+            [ -z $DATABASE_PATH ] && ! volume-exists gnosis_data && docker volume create gnosis_data
+            ;;
+        "matic")
+            [ -z $CONFIG_PATH ] && ! volume-exists matic_config && docker volume create matic_config
+            if [ "${ERIGON_TAG:0:2}" = "v2" ]; then
+                cp $NODEDIR/matic/config-v2.yaml ${CONFIG_PATH:-/var/lib/docker/volumes/matic_config/_data}/config.yaml
+            else
+                cp $NODEDIR/matic/config.yaml ${CONFIG_PATH:-/var/lib/docker/volumes/matic_config/_data}/config.yaml
+            fi
+
+            [ -z $DATABASE_PATH ] && ! volume-exists matic_data && docker volume create matic_data
+            ;;
+        "arbitrum-one")
+            [ -z $CLASSIC_DATABASE_PATH ] && ! volume-exists arbitrum-one_classic-data && docker volume create arbitrum-one_classic-data
+            # curl https://snapshot.arbitrum.foundation/arb1/classic-archive.tar | tar -xv -C  ${CLASSIC_DATABASE_PATH:-"/var/lib/docker/volumes/arbitrum-one_classic-data/_data/"}
+
+            [ -z $NITRO_DATABASE_PATH ] && ! volume-exists arbitrum-one_nitro-data && docker volume create arbitrum-one_nitro-data
+            ;;
+        "avalanche")
+            [ -z $CONFIG_PATH ] && ! volume-exists avalanche_config && docker volume create avalanche_config
+            cp $NODE_DIR/avalanche/node.json ${CONFIG_PATH:-/var/lib/docker/volumes/avalanche_config/_data/}
+
+            [ -z $CCONFIG_PATH ] && ! volume-exists avalanche_c-config && docker volume create avalanche_c-config
+            cp $NODE_DIR/avalanche/config.json ${CCONFIG_PATH:-/var/lib/docker/volumes/avalanche_c-config/_data/}
+
+            [ -z $DATABASE_PATH ] && ! volume-exists avalanche_data && docker volume create avalanche_data
+            ;;
+        "optimism")
+            [ -z $SCRIPTS_PATH ] && ! volume-exists optimism_scripts && docker volume create optimism_scripts
+            cp $NODE_DIR/optimism/scripts/* ${SCRIPTS_PATH:-/var/lib/docker/volumes/optimism_scripts/_data/}
+
+            [ -z $CONFIG_PATH ] && ! volume-exists optimism_config && docker volume create optimism_config
+            [ -z $SHARED_PATH ] && ! volume-exists optimism_shared && docker volume create optimism_shared
+            [ -z $DOWNLOADS_PATH ] && ! volume-exists optimism_downloads && docker volume create optimism_downloads
+            [ -z $INFLUXDB_PATH ] && ! volume-exists optimism_influxdb && docker volume create optimism_influxdb
+            [ -z $OPGETH_DATABASE_PATH ] && ! volume-exists optimism_opgeth && docker volume create optimism_opgeth
+            [ -z $L2GETH_DATABASE_PATH ] && ! volume-exists optimism_l2geth && docker volume create optimism_l2geth
+            ;;
+        "celo")
+            # apt install libusb-1.0-0-dev libudev-dev
+            # npm install -g @celo/celocli
+            [ -z $DATABASE_PATH ] && ! volume-exists celo_data && docker volume create celo_data
+            ;;
+        "base")
+            [ -z $DATABASE_PATH ] && ! volume-exists base_data && docker volume create base_data
+            # tar --use-compress-program=unzstd -xvf archive.tar.zst
+            # SNAP_LATEST=$(curl https://mainnet-archive-snapshots.base.org/latest)
+            # cd ${DATABASE_PATH:-"/var/lib/docker/volumes/base_data/_data/"} && \
+            # wget https://mainnet-archive-snapshots.base.org/$SNAP_LATEST && \
+            # tar –xvzf $SNAP_LATEST && \
+            # rm -rf $SNAP_LATEST
+            ;;
+        "linea")
+            [ -z $DATABASE_PATH ] && ! volume-exists linea_data && docker volume create linea_data
+            ;;
+        *)
+            echo "Chain not supported yet!"
+            return
+            ;;
+    esac
+
+    COMPOSE_PROJECT_NAME=$1 \
+    COMPOSE_FILE=$NODE_DIR/$1/$1.yml \
+    docker compose --env-file $NODE_DIR/$1/$1.env pull
+
+    COMPOSE_PROJECT_NAME=$1 \
+    COMPOSE_FILE=$NODE_DIR/$1/$1.yml \
+    docker compose --env-file $NODE_DIR/$1/$1.env up -d --remove-orphans --build
+
+    if [ ! -z $MAINNET_LOCAL_NETWORK ]; then
+        case $1 in
+            "arbitrum-one")
+                nets=$(docker container inspect --format '{{range $net,$v := .NetworkSettings.Networks}}{{printf "%s\n" $net}}{{end}}' arbitrum-one-nitro)
+                [[ ! ${nets[@]} =~ "$MAINNET_LOCAL_NETWORK" ]] && docker network connect $MAINNET_LOCAL_NETWORK arbitrum-one-nitro
+                nets=$(docker container inspect --format '{{range $net,$v := .NetworkSettings.Networks}}{{printf "%s\n" $net}}{{end}}' arbitrum-one-classic)
+                [[ ! ${nets[@]} =~ "$MAINNET_LOCAL_NETWORK" ]] && docker network connect $MAINNET_LOCAL_NETWORK arbitrum-one-classic
+            ;;
+            "optimism")
+                nets=$(docker container inspect --format '{{range $net,$v := .NetworkSettings.Networks}}{{printf "%s\n" $net}}{{end}}' optimism-op-node)
+                [[ ! ${nets[@]} =~ "$MAINNET_LOCAL_NETWORK" ]] && docker network connect $MAINNET_LOCAL_NETWORK optimism-op-node
+                nets=$(docker container inspect --format '{{range $net,$v := .NetworkSettings.Networks}}{{printf "%s\n" $net}}{{end}}' optimism-l2geth)
+                [[ ! ${nets[@]} =~ "$MAINNET_LOCAL_NETWORK" ]] && docker network connect $MAINNET_LOCAL_NETWORK optimism-l2geth
+            ;;
+            "base")
+                nets=$(docker container inspect --format '{{range $net,$v := .NetworkSettings.Networks}}{{printf "%s\n" $net}}{{end}}' base-execution)
+                [[ ! ${nets[@]} =~ "$MAINNET_LOCAL_NETWORK" ]] && docker network connect $MAINNET_LOCAL_NETWORK base-execution
+                nets=$(docker container inspect --format '{{range $net,$v := .NetworkSettings.Networks}}{{printf "%s\n" $net}}{{end}}' base-node)
+                [[ ! ${nets[@]} =~ "$MAINNET_LOCAL_NETWORK" ]] && docker network connect $MAINNET_LOCAL_NETWORK base-node
+            ;;
+        esac 
+    fi
+
+    if [ ! -z "$HOST" ]; then
+        reverseproxy-check || { echo "Error: reverse proxy not running"; return 1; }
+
+        case $1 in
+            "arbitrum-one")
+                container=$1-nitro
+            ;;
+            "optimism")
+                container=$1-op-geth
+            ;;
+            "base")
+                container=$1-execution
+            ;;
+            *)
+                container=$1
+            ;;
+        esac
+
+        nets=$(docker container inspect --format '{{range $net,$v := .NetworkSettings.Networks}}{{printf "%s\n" $net}}{{end}}' $container)
+        if [[ ! ${nets[@]} =~ "reverse-proxy" ]]; then
+            docker network connect reverse-proxy $container
+        fi
+
+        VHOST_PATH=/var/lib/docker/volumes/reverse-proxy_vhost/_data
+        [ -f "${VHOST_PATH}/${SUBDOMAIN:-$1}.${HOST}" ] && rm ${VHOST_PATH}/${SUBDOMAIN:-$1}.${HOST}
+
+        if [ ! -z $WHITELIST ]; then
+            for (( j=0; j<${#WHITELIST[@]}; j++ )); do
+                echo "allow ${WHITELIST[$j]};" >> ${VHOST_PATH}/${SUBDOMAIN:-$1}.${HOST}
+            done
+            echo "deny all;" >> ${VHOST_PATH}/${SUBDOMAIN:-$1}.${HOST}
+        fi
+    fi
+    # unset HOST SUBDOMAIN WHITELIST DATABASE_PATH MAINNET_LOCAL_NETWORK
+}
+
 node-install() {
     CHAINS=$(whiptail --title "Blockchain Node Setup" --separate-output --checklist "Choose blockchain" 25 52 16 \
         "mainnet" "Ethereum Mainnet" OFF \
@@ -58,150 +214,17 @@ node-install() {
         { echo "No option selected"; return; }
     else
         for CHAIN in $CHAINS; do
-            case "$CHAIN" in
-            "mainnet")
-                [ -f "mainnet/mainnet.env" ] || { echo "Error: user mainnet.env file not found"; return 1; }
-                source mainnet/mainnet.env
-
-                [ -z $CONFIG_PATH ] && docker volume create mainnet_config
-                cp mainnet/config.yaml ${CONFIG_PATH:-/var/lib/docker/volumes/mainnet_config/_data/}
-                
-                [ -z $DATABASE_PATH ] && docker volume create mainnet_data
-                ;;
-            "arbitrum-one")
-                [ -f "arbitrum-one/arbitrum-one.env" ] || { echo "Error: user arbitrum-one.env file not found"; return 1; }
-                source arbitrum-one/arbitrum-one.env
-
-                [ -z $CLASSIC_DATABASE_PATH ] && docker volume create arbitrum-one_classic-data
-                curl https://snapshot.arbitrum.foundation/arb1/classic-archive.tar | tar -xv -C  ${CLASSIC_DATABASE_PATH:-"/var/lib/docker/volumes/arbitrum-one_classic-data/_data/"}
-                
-                [ -z $NITRO_DATABASE_PATH ] && docker volume create arbitrum-one_nitro-data
-                ;;
-            "matic")
-                [ -f "matic/matic.env" ] || { echo "Error: user matic.env file not found"; return 1; }
-                source matic/matic.env
-
-                [ -z $CONFIG_PATH ] && docker volume create matic_config
-                cp matic/config.yaml ${CONFIG_PATH:-/var/lib/docker/volumes/matic_config/_data/}
-                
-                [ -z $DATABASE_PATH ] && docker volume create matic_data
-                ;;
-            "optimism")
-                [ -f "optimism/optimism.env" ] || { echo "Error: user optimism.env file not found"; return 1; }
-                source optimism/optimism.env
-
-                [ -z $SCRIPTS_PATH ] && docker volume create optimism_scripts
-                cp optimism/scripts/* ${SCRIPTS_PATH:-/var/lib/docker/volumes/optimism_scripts/_data/}
-
-                [ -z $CONFIG_PATH ] && docker volume create optimism_config
-                [ -z $SHARED_PATH ] && docker volume create optimism_shared
-                [ -z $DOWNLOADS_PATH ] && docker volume create optimism_downloads
-                [ -z $INFLUXDB_PATH ] && docker volume create optimism_influxdb
-                [ -z $OPGETH_DATABASE_PATH ] && docker volume create optimism_opgeth
-                [ -z $L2GETH_DATABASE_PATH ] && docker volume create optimism_l2geth
-                ;;
-            "avalanche")
-                [ -f "avalanche/avalanche.env" ] || { echo "Error: user avalanche.env file not found"; return 1; }
-                source avalanche/avalanche.env
-
-                [ -z $CONFIG_PATH ] && docker volume create avalanche_config
-                cp avalanche/node.json ${CONFIG_PATH:-/var/lib/docker/volumes/avalanche_config/_data/}
-
-                [ -z $CCONFIG_PATH ] && docker volume create avalanche_c-config
-                cp avalanche/config.json ${CCONFIG_PATH:-/var/lib/docker/volumes/avalanche_c-config/_data/}
-                
-                [ -z $DATABASE_PATH ] && docker volume create avalanche_data
-                ;;
-            "gnosis")
-                [ -f "gnosis/gnosis.env" ] || { echo "Error: user gnosis.env file not found"; return 1; }
-                source gnosis/gnosis.env
-
-                [ -z $CONFIG_PATH ] && docker volume create gnosis_config
-                cp gnosis/config.yaml ${CONFIG_PATH:-/var/lib/docker/volumes/gnosis_config/_data/}
-                
-                [ -z $DATABASE_PATH ] && docker volume create gnosis_data
-                ;;
-            "celo")
-                [ -f "celo/celo.env" ] || { echo "Error: user celo.env file not found"; return 1; }
-                source celo/celo.env
-
-                # apt install libusb-1.0-0-dev libudev-dev
-                # npm install -g @celo/celocli
-                [ -z $DATABASE_PATH ] && docker volume create celo_data
-                ;;
-            "base")
-                [ -f "base/base.env" ] || { echo "Error: user base.env file not found"; return 1; }
-                source base/base.env
-
-                [ -z $DATABASE_PATH ] && docker volume create base_data
-                SNAP_LATEST=$(curl https://mainnet-archive-snapshots.base.org/latest)
-                cd ${DATABASE_PATH:-"/var/lib/docker/volumes/base_data/_data/"} && \
-                wget https://mainnet-archive-snapshots.base.org/$SNAP_LATEST && \
-                tar –xvzf $SNAP_LATEST && \
-                rm -rf $SNAP_LATEST
-                ;;
-            "linea")
-                [ -f "linea/linea.env" ] || { echo "Error: user linea.env file not found"; return 1; }
-                source linea/linea.env
-                [ -z $DATABASE_PATH ] && docker volume create linea_data
-                ;;
-            *)
-                echo "$CHAIN not available yet" >&2
-                return
-                ;;
-            esac
-
-            COMPOSE_PROJECT_NAME=$CHAIN \
-            COMPOSE_FILE=$CHAIN/$CHAIN.yml \
-            docker compose --env-file $CHAIN/$CHAIN.env up -d --remove-orphans --build
-
-            if [ ! -z $MAINNET_LOCAL_NETWORK ]; then
-                case $CHAIN in
-                    "arbitrum-one")
-                        docker network connect $MAINNET_LOCAL_NETWORK arbitrum-one-nitro
-                        docker network connect $MAINNET_LOCAL_NETWORK arbitrum-one-classic
-                    ;;
-                    "optimism")
-                        docker network connect $MAINNET_LOCAL_NETWORK optimism-op-node
-                        docker network connect $MAINNET_LOCAL_NETWORK optimism-l2geth
-                    ;;
-                    "base")
-                        docker network connect $MAINNET_LOCAL_NETWORK base-execution
-                        docker network connect $MAINNET_LOCAL_NETWORK base-node
-                    ;;
-                esac 
-            fi
-
-            if [ ! -z "$HOST" ]; then
-                reverseproxy-check || { echo "Error: reverse proxy not running"; return 1; }
-
-                case $CHAIN in
-                    "arbitrum-one")
-                        docker network connect reverse-proxy arbitrum-one-nitro 
-                    ;;
-                    "optimism")
-                        docker network connect reverse-proxy optimism-op-geth
-                    ;;
-                    "base")
-                        docker network connect reverse-proxy base-execution
-                    ;;
-                    *)
-                        docker network connect reverse-proxy $CHAIN
-                    ;;
-                esac
-
-                if [ ! -z $WHITELIST ]; then
-                    VHOST_PATH=/var/lib/docker/volumes/reverse-proxy_vhost/_data
-                    for (( j=0; j<${#WHITELIST[@]}; j++ )); do
-                        echo "allow ${WHITELIST[$j]};" >> ${VHOST_PATH}/${SUBDOMAIN:-$CHAIN}.${HOST}
-                    done
-                    echo "deny all;" >> ${VHOST_PATH}/${SUBDOMAIN:-$CHAIN}.${HOST}
-                fi
-            fi
-
-            # unset HOST SUBDOMAIN WHITELIST DATABASE_PATH MAINNET_LOCAL_NETWORK
+            ENVFILE=$(whiptail --title "Blockchain Node Setup" --inputbox "Environment file $CHAIN" 8 78 "$CHAIN" 3>&1 1>&2 2>&3) || return
+            node-start $CHAIN $ENVFILE
         done
     fi
+}
+
+if [ "${1}" != "--source" ]; then
+    basics-install || { echo "Error: could not install basic tools"; exit 1; }
+    docker-install || { echo "Error: could not install Docker"; exit 1; }
+    nodejs-install || { echo "Error: could not install Node.js"; exit 1; }
+    node-install || { echo "Error: could not install blockchains"; exit 1; }
 
     # export to .bashrc if needed
     if ! grep -q "#node-setup" ~/.bashrc; then
@@ -213,13 +236,4 @@ node-install() {
         echo 'source $NODE_DIR/utils/manage' >> ~/.bashrc
         source ~/.bashrc
     fi
-}
-
-
-basics-install || { echo "Error: could not install basic tools"; exit 1; }
-
-docker-install || { echo "Error: could not install Docker"; exit 1; }
-
-nodejs-install || { echo "Error: could not install Node.js"; exit 1; }
-
-node-install || { echo "Error: could not install blockchains"; exit 1; }
+fi

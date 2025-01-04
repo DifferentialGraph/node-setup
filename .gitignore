@@ -8,3 +8,4 @@
 !matic-template.env
 !optimism-template.env
 !optimism/envs/*
+!base-template.env
