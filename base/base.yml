@@ -19,8 +19,8 @@ services:
       - 8546       # websocket
       - 6060       # metrics
     ports:
-      - "30303:30303"     # P2P TCP
-      - "30303:30303/udp" # P2P UDP
+      - "30333:30303"     # P2P TCP
+      - "30333:30303/udp" # P2P UDP
     command: [ "bash", "./execution-entrypoint" ]
     volumes:
       - ${DATABASE_PATH:-data}:/data
