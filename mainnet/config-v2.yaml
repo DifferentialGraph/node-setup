@@ -52,7 +52,7 @@ pprof.port: 6061
 # db.size.limit: '8TB'
 
 # beacon api
-caplin.archive: false
+caplin.archive: true
 caplin.backfilling: true
 caplin.backfilling.blob: true
 caplin.backfilling.blob.no-pruning: true
