@@ -1,5 +1,5 @@
 #!/bin/bash -i
-NODEDIR="$( cd "$( dirname -- $0 )" && pwd )"
+NODEDIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 . $NODEDIR/utils/docker
 
 basics-install() {
@@ -229,10 +229,9 @@ if [ "${1}" != "--source" ]; then
     # export to .bashrc if needed
     if ! grep -q "#node-setup" ~/.bashrc; then
         echo "Modifying .bashrc ..."
-        DIR="$( cd "$( dirname -- $0 )" && pwd )"
         echo -e "\n" >> ~/.bashrc
         echo "#node-setup" >> ~/.bashrc
-        echo "export NODE_DIR=$DIR" >> ~/.bashrc
+        echo "export NODE_DIR=$NODEDIR" >> ~/.bashrc
         echo 'source $NODE_DIR/utils/manage' >> ~/.bashrc
         source ~/.bashrc
     fi
