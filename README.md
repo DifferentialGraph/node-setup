@@ -117,3 +117,22 @@ curl -H "Content-Type: application/json" -X POST --data '{"jsonrpc":"2.0","metho
 | 127.0.0.1:9994 | 8546  |    TCP    | op-geth ws                  |
 | 0.0.0.0:9003   | 9003  | TCP & UDP | op-node p2p                 |
 | 127.0.0.1:9545 | 9545  |    TCP	 | op-node http                |
+
+## Base - `base`
+
+### ports configuration
+| Host           | Port  | Protocol  | Purpose                     |
+|:---------------|:-----:|:---------:|:---------------------------:|
+| 0.0.0.0:30333  | 30303 | TCP & UDP | p2p                         |
+| -              | 8545  |    TCP	 | rpc                         |
+| -              | 8546  |    TCP	 | websocket                   |
+| -              | 6060  |    TCP    | Metrics                     |
+
+## Linea - `linea`
+
+### ports configuration
+| Host           | Port  | Protocol  | Purpose                     |
+|:---------------|:-----:|:---------:|:---------------------------:|
+| 0.0.0.0:30343  | 30303 | TCP & UDP | p2p                         |
+| -              | 8545  |    TCP	 | rpc                         |
+| -              | 8546  |    TCP	 | websocket                   |
