@@ -11,7 +11,7 @@ node-stop() {
 }
 
 node-restart() {
-    node-stop $1 && node-start $1
+    node-stop $1 && node-start $1 $2
 }
 
 node-monitor() {
@@ -69,6 +69,10 @@ node-monitor() {
         "fantom")
             tmux rename-window -t 0 'fantom-cli' && tmux send-keys -t 'fantom-cli' "docker exec -it fantom /bin/bash" C-m
             tmux new-window -t $1:1 -n 'fantom-log' && tmux send-keys -t 'fantom-log' "docker logs fantom --tail 10 -f | pino-pretty -c -t" C-m
+        ;;
+        "scroll")
+            tmux rename-window -t 0 'scroll-log' && tmux send-keys -t 'scroll-log' "docker logs scroll --tail 10 -f | pino-pretty -c -t" C-m
+            tmux new-window -t $1:1 -n 'scroll-cli' && tmux send-keys -t 'scroll-cli' "docker exec -it scroll sh" C-m
         ;;
         *)
             echo "Chain not supported!"

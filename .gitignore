@@ -9,3 +9,4 @@
 !optimism-template.env
 !optimism/envs/*
 !base-template.env
+!scroll-template.env

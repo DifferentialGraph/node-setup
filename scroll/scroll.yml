@@ -1,0 +1,57 @@
+volumes:
+  data:
+    external: true
+    name: ${COMPOSE_PROJECT_NAME}_data
+
+networks:
+  scroll:
+    name: scroll
+
+services:
+  scroll-mainnet:
+    image: scrolltech/l2geth:scroll-v5.8.0
+    container_name: ${COMPOSE_PROJECT_NAME}
+    expose: 
+      - 8545 # HTTP server / GraphQL API 
+    ports:
+      - "38907:38907"
+      - "38907:38907/udp"
+    command:
+      [
+        "--scroll",
+        "--syncmode=full", # blockchain sync mode ("snap", "full" or "light")
+        "--gcmode=${NODE_TYPE:-full}",
+        "--cache.noprefetch",
+        "--port=38907",
+        "--nat=extip:0.0.0.0", # megabytes of memory allocated to internal caching
+        "--cache=8192",
+        "--ws",
+        "--ws.port=8545",
+        "--ws.addr=0.0.0.0",
+        "--ws.origins=*",
+        "--http",
+        "--http.port=8545",
+        "--http.addr=0.0.0.0",
+        "--http.vhosts=*",
+        "--l1.endpoint=${SCROLL_L1_ENDPOINT}",
+        "--rollup.verify",
+        "--graphql", # enable GraphQL on the HTTP-RPC server (can only be started if an HTTP server is started as well)
+        "--graphql.vhosts=*",
+        "--metrics",
+        "--metrics.addr=0.0.0.0",
+        "--maxpeers=100", # maximum number of network peers (network disabled if set to 0) (default: 50)
+        "--gpo.ignoreprice=1"
+      ]
+    networks:
+      - scroll
+    volumes:
+      - ${DATABASE_PATH:-data}:/root/.ethereum
+    restart: unless-stopped
+    stop_grace_period: 5m
+    environment:
+      LETSENCRYPT_HOST: ${SUBDOMAIN:-scroll}.${HOST}
+      VIRTUAL_HOST_MULTIPORTS: |-
+        ${SUBDOMAIN:-scroll}.${HOST}:
+          "/":
+            port: 8545
+            dest: "/"
