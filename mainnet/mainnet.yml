@@ -12,7 +12,7 @@ networks:
 
 services:
   mainnet:
-    image: erigontech/erigon:${MAINNET_ERIGON_TAG:-main-latest}
+    image: erigontech/erigon:${ERIGON_TAG:-main-latest}
     container_name: ${COMPOSE_PROJECT_NAME}
     restart: unless-stopped
     stop_grace_period: 1m
@@ -50,6 +50,6 @@ services:
           "/":
             port: 8545
             dest: "/"
-          "/beacon":
+          "/eth/v1":
             port: 5555
-            dest: "/"
+            dest: "/eth/v1"

@@ -1,6 +1,7 @@
 chain: gnosis
 datadir: /home/erigon/.local/share/erigon
 
+prune.mode: archive
 externalcl: false
 sync.loop.block.limit: 10_000
 batchSize: 2g

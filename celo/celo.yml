@@ -47,4 +47,3 @@ services:
           "/ws":
             port: 8546
             dest: "/"
-            

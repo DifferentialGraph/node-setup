@@ -60,7 +60,7 @@ beacon.api: [beacon, builder, config, debug, node, validator, lighthouse]
 beacon.api.port: 5555
 beacon.api.addr: 0.0.0.0
 beacon.api.cors.allow-origins: "*"
-# beacon.api.cors.allow-credentials: true
+beacon.api.cors.allow-credentials: true
 
 log.console.verbosity: 3
 

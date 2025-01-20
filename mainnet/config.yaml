@@ -1,6 +1,7 @@
 chain: mainnet
 datadir: /home/erigon/.local/share/erigon
 
+prune.mode: archive
 externalcl: false
 sync.loop.block.limit: 10_000
 batchSize: 2g
@@ -52,7 +53,7 @@ pprof.port: 6061
 # db.size.limit: '8TB'
 
 # beacon api
-caplin.archive: false
+caplin.archive: true
 caplin.backfilling: true
 caplin.backfilling.blob: true
 caplin.backfilling.blob.no-pruning: true
@@ -60,9 +61,9 @@ beacon.api: [beacon, builder, config, debug, node, validator, lighthouse]
 beacon.api.port: 5555
 beacon.api.addr: 0.0.0.0
 beacon.api.cors.allow-origins: "*"
-# beacon.api.cors.allow-credentials: true
+beacon.api.cors.allow-credentials: true
 
 log.console.verbosity: 3
 
 nat: stun
-no-downloader: true
+# no-downloader: true

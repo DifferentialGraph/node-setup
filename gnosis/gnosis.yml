@@ -12,7 +12,7 @@ networks:
 
 services:
   gnosis:
-    image: erigontech/erigon:${GNOSIS_ERIGON_TAG:-main-latest}
+    image: erigontech/erigon:${ERIGON_TAG:-main-latest}
     container_name: ${COMPOSE_PROJECT_NAME}
     restart: unless-stopped
     stop_grace_period: 1m
