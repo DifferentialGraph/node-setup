@@ -125,6 +125,9 @@ node-start() {
         "linea")
             [ -z $DATABASE_PATH ] && ! volume-exists linea_data && docker volume create linea_data
             ;;
+        "scroll")
+            [ -z $DATABASE_PATH ] && ! volume-exists scroll_data && docker volume create scroll_data
+            ;;
         *)
             echo "Chain not supported yet!"
             return
@@ -133,11 +136,11 @@ node-start() {
 
     COMPOSE_PROJECT_NAME=$1 \
     COMPOSE_FILE=$NODE_DIR/$1/$1.yml \
-    docker compose --env-file $NODE_DIR/$1/$1.env pull
+    docker compose --env-file $NODEDIR/$1/${ENV_FILE} pull
 
     COMPOSE_PROJECT_NAME=$1 \
     COMPOSE_FILE=$NODE_DIR/$1/$1.yml \
-    docker compose --env-file $NODE_DIR/$1/$1.env up -d --remove-orphans --build
+    docker compose --env-file $NODEDIR/$1/${ENV_FILE} up -d --remove-orphans --build
 
     if [ ! -z $MAINNET_LOCAL_NETWORK ]; then
         case $1 in
@@ -158,6 +161,10 @@ node-start() {
                 [[ ! ${nets[@]} =~ "$MAINNET_LOCAL_NETWORK" ]] && docker network connect $MAINNET_LOCAL_NETWORK base-execution
                 nets=$(docker container inspect --format '{{range $net,$v := .NetworkSettings.Networks}}{{printf "%s\n" $net}}{{end}}' base-node)
                 [[ ! ${nets[@]} =~ "$MAINNET_LOCAL_NETWORK" ]] && docker network connect $MAINNET_LOCAL_NETWORK base-node
+            ;;
+            "scroll")
+                nets=$(docker container inspect --format '{{range $net,$v := .NetworkSettings.Networks}}{{printf "%s\n" $net}}{{end}}' scroll)
+                [[ ! ${nets[@]} =~ "$MAINNET_LOCAL_NETWORK" ]] && docker network connect $MAINNET_LOCAL_NETWORK scroll
             ;;
         esac 
     fi
@@ -208,6 +215,7 @@ node-install() {
         "celo" "Celo" OFF \
         "linea" "Linea" OFF \
         "base" "Base" OFF \
+        "scroll" "Scroll" OFF \
         "fantom" "Fantom" OFF 3>&1 1>&2 2>&3) || { echo "User exit"; return; }
 
     if [ -z "$CHAINS" ]; then
