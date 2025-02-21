@@ -1,10 +1,6 @@
 chain: mainnet
 datadir: /home/erigon/.local/share/erigon
 
-internalcl: true
-sync.loop.block.limit: 10_000
-batchSize: 2g
-
 # eth/66 peering
 port: 30303
 
@@ -14,7 +10,7 @@ torrent.download.rate: 1250mb
 torrent.upload.rate: 1250mb
 
 # gRPC Server
-private.api.addr: localhost:9090 # for modular components connections
+private.api.addr: 0.0.0.0:9090 # for modular components connections
 
 # Engine API (JWT auth)
 authrpc.port: 8551 # for consensus layer communication
@@ -22,47 +18,47 @@ authrpc.addr: 0.0.0.0
 authrpc.jwtsecret: /home/erigon/.local/share/erigon/jwt.hex
 authrpc.vhosts: "*"
 
-# HTTP & WebSockets & GraphQL
 http: true
-# http.compression : true 
 http.port: 8545
 http.addr: 0.0.0.0
 http.vhosts: "*"
 http.corsdomain: "*"
-http.api: [eth, erigon, web3, debug, net, trace] # txpool
-rpc.returndata.limit: 1100000
-# rpc.accessList : rules.json
-rpc.gascap: 5000000000
+http.api: [eth, erigon, web3, debug, net, trace, txpool]
+# http.compression : true 
+
 ws: true
-# ws.port: 8546
 # ws.compression: true
 
-# metric
+rpc.returndata.limit: 1100000
+rpc.gascap: 5000000000
+# rpc.accessList : rules.json
+
 metrics : false
 metrics.addr: 0.0.0.0
 metrics.port: 6060
 
-# pprof
 pprof: false
 pprof.addr: 0.0.0.0 
 pprof.port: 6061
 
-# snapshots: true
-# snap.keepblocks: true
-# db.size.limit: '8TB'
-
-# beacon api
+internalcl: true
 caplin.archive: true
 caplin.backfilling: true
 caplin.backfilling.blob: true
 caplin.backfilling.blob.no-pruning: true
+
 beacon.api: [beacon, builder, config, debug, node, validator, lighthouse]
 beacon.api.port: 5555
 beacon.api.addr: 0.0.0.0
 beacon.api.cors.allow-origins: "*"
-beacon.api.cors.allow-credentials: true
-
-log.console.verbosity: 3
+# beacon.api.cors.allow-credentials: true
 
 nat: stun
+
 # no-downloader: true
+# log.console.verbosity: 3
+# snapshots: true
+# snap.keepblocks: true
+# db.size.limit: '8TB'
+# sync.loop.block.limit: 10_000
+# batchSize: 2g

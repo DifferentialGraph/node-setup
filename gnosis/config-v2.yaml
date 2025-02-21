@@ -29,10 +29,10 @@ http.port: 8545
 http.addr: 0.0.0.0
 http.vhosts: "*"
 http.corsdomain: "*"
-http.api: [eth, erigon, web3, debug, net, trace] # txpool
+http.api: [eth, erigon, web3, debug, net, trace, txpool]
 # rpc.returndata.limit: 1000000
 # rpc.accessList : rules.json
-ws: false
+ws: true
 ws.compression: true
 
 # metric

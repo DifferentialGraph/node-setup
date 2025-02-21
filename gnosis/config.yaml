@@ -1,10 +1,20 @@
 chain: gnosis
+
 datadir: /home/erigon/.local/share/erigon
 
-prune.mode: archive
+ethash.dagdir: /home/erigon/.local/share/erigon/ethash
+
 externalcl: false
-sync.loop.block.limit: 10_000
-batchSize: 2g
+
+prune.mode: archive
+
+nat: stun
+
+# sync.loop.block.limit: 10_000
+
+batchSize: 2048MB
+
+bodies.cache: 5G
 
 # eth/66 peering
 port: 30303
@@ -23,21 +33,25 @@ authrpc.addr: 0.0.0.0
 authrpc.jwtsecret: /home/erigon/.local/share/erigon/jwt.hex
 authrpc.vhosts: "*"
 
-# HTTP & WebSockets & GraphQL
+# http
 http: true
-# http.compression : true 
+http.compression: true 
 http.port: 8545
 http.addr: 0.0.0.0
 http.vhosts: "*"
 http.corsdomain: "*"
-http.api: [eth, erigon, web3, debug, net, trace] # txpool
-# rpc.returndata.limit: 1000000
-# rpc.accessList : rules.json
-ws: false
+http.api: [eth, erigon, web3, debug, net, trace, txpool]
+
+ws: true
 ws.compression: true
 
+rpc.returndata.limit: 1000000
+# rpc.accessList : rules.json
+rpc.gascap: 300000000
+rpc.batch.limit: 200000
+
 # metric
-metrics : false
+metrics: false
 metrics.addr: 0.0.0.0
 metrics.port: 6060
 
@@ -49,3 +63,10 @@ pprof.port: 6061
 # snapshots: true
 # snap.keepblocks: true
 # db.size.limit: '8TB'
+
+# p2p.protocol: 66
+# p2p.protocol: 67 
+# p2p.protocol: 68
+# p2p.allowed-ports: 28806
+# p2p.allowed-ports: 16393
+# p2p.allowed-ports: 17938

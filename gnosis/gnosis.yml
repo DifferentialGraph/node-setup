@@ -46,4 +46,3 @@ services:
       VIRTUAL_HOST: ${SUBDOMAIN:-gnosis}.${HOST}
       VIRTUAL_PORT: 8545
       LETSENCRYPT_HOST: ${SUBDOMAIN:-gnosis}.${HOST}
-      
