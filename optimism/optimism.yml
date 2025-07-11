@@ -1,6 +1,6 @@
 networks:
   optimism:
-    name: optimism
+    name: ${COMPOSE_PROJECT_NAME}
 
 volumes:
   config:
@@ -48,7 +48,7 @@ services:
       - optimism
 
   op-geth:
-    image: us-docker.pkg.dev/oplabs-tools-artifacts/images/op-geth:${OP_GETH_TAG:-latest}
+    image: us-docker.pkg.dev/oplabs-tools-artifacts/images/op-geth:${OP_GETH_TAG:-v1.101503.4}
     container_name: ${COMPOSE_PROJECT_NAME}-op-geth
     restart: unless-stopped
     stop_grace_period: 5m
@@ -62,12 +62,12 @@ services:
       - ${SHARED_PATH:-shared}:/shared
       - ${OPGETH_DATABASE_PATH:-op-geth}:/geth
     ports:
-      - 39393:39393/udp # p2p
-      - 39393:39393/tcp # p2p
-      - 127.0.0.1:9993:8545 # http
+      - ${OPGETH_P2P:-39393}:39393/udp # p2p
+      - ${OPGETH_P2P:-39393}:39393/tcp # p2p
+      # - 127.0.0.1:9993:8545 # http
       # - 127.0.0.1:9994:8546 # ws
     expose:
-      # - 8545
+      - 8545
       - 8546
       - 8551
     extra_hosts:
@@ -86,7 +86,7 @@ services:
             dest: "/"
 
   op-node:
-    image: us-docker.pkg.dev/oplabs-tools-artifacts/images/op-node:${OP_NODE_TAG:-latest}
+    image: us-docker.pkg.dev/oplabs-tools-artifacts/images/op-node:${OP_NODE_TAG:-v1.13.2}
     container_name: ${COMPOSE_PROJECT_NAME}-op-node
     restart: unless-stopped
     stop_grace_period: 5m
@@ -99,8 +99,8 @@ services:
       - ${SCRIPTS_PATH:-scripts}:/scripts
       - ${SHARED_PATH:-shared}:/shared
     ports:
-      - 9003:9003/udp # p2p
-      - 9003:9003/tcp # p2p
+      - ${OPGETH_P2P:-9003}:9003/udp # p2p
+      - ${OPGETH_P2P:-9003}:9003/tcp # p2p
       # - 127.0.0.1:9545:9545 # http
     expose:
       - 9545 # http
