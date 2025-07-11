@@ -11,7 +11,7 @@ volumes:
 
 networks:
   avalanche:
-    name: avalanche
+    name: ${COMPOSE_PROJECT_NAME}
 
 services:
   avalanche:
@@ -21,10 +21,10 @@ services:
     stop_grace_period: 1m
     networks:
       - avalanche
-    ports:
-      - 127.0.0.1:9650:9650
+    # ports:
+    #   - 127.0.0.1:9650:9650
     expose:
-      # - 9650
+      - 9650
       - 9651
     volumes:
       - ${DATABASE_PATH:-data}:/root/.avalanchego
