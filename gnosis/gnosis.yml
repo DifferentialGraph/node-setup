@@ -8,11 +8,11 @@ volumes:
 
 networks:
   gnosis:
-    name: gnosis
+    name: ${COMPOSE_PROJECT_NAME}
 
 services:
   gnosis:
-    image: erigontech/erigon:${ERIGON_TAG:-main-latest}
+    image: erigontech/erigon:${ERIGON_TAG:-v3.0.1}
     container_name: ${COMPOSE_PROJECT_NAME}
     restart: unless-stopped
     stop_grace_period: 1m
@@ -22,22 +22,22 @@ services:
       - ${CONFIG_PATH:-config}:/home/erigon/.config
       - ${DATABASE_PATH:-data}:/home/erigon/.local/share/erigon
     ports:
-      - 30313:30303/tcp # eth/66 peering
-      - 30313:30303/udp # eth/66 peering
-      - 30314:30304/tcp # eth/67 peering
-      - 30314:30304/udp # eth/67 peering
-      - 42079:42069/tcp # snap sync
-      - 42079:42069/udp # snap sync
-      - 4010:4000/udp # sentinel peering (caplin)
-      - 4011:4001/tcp # sentinel peering (caplin)
-      - 127.0.0.1:8555:8545/tcp # HTTP & WebSockets & GraphQL
+      - ${PORT_PEERING_66:-30313}:30303/tcp # eth/66 peering
+      - ${PORT_PEERING_66:-30313}:30303/udp # eth/66 peering
+      - ${PORT_PEERING_67:-30314}:30304/tcp # eth/67 peering
+      - ${PORT_PEERING_67:-30314}:30304/udp # eth/67 peering
+      - ${PORT_SNAP:-42079}:42069/tcp # snap sync
+      - ${PORT_SNAP:-42079}:42069/udp # snap sync
+      - ${PORT_SENTINEL_UDP:-4010}:4000/udp # sentinel peering (caplin)
+      - ${PORT_SENTINEL_TCP:-4011}:4001/tcp # sentinel peering (caplin)
+      # - 127.0.0.1:8555:8545/tcp # HTTP & WebSockets & GraphQL
     expose:
       - 9090/tcp # gRPC Server
       - 8551/tcp # Engine API (JWT auth)
       - 9091/tcp # incoming gRPC Connections
       - 6060/tcp # metric
       - 6061/tcp # pprof
-      # - 8545/tcp # HTTP & WebSockets & GraphQL
+      - 8545/tcp # HTTP & WebSockets & GraphQL
     command: >
       --config /home/erigon/.config/config.yaml
     mem_swappiness: 0

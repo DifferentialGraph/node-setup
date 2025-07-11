@@ -53,10 +53,10 @@ pprof.port: 6061
 # beacon api
 externalcl: false
 
-caplin.blocks-archive: true
-caplin.blobs-archive: true
 caplin.states-archive: true
-# caplin.blobs-immediate-backfill: true
+caplin.blobs-archive: true
+caplin.blocks-archive: true
+caplin.blobs-immediate-backfill: true
 caplin.blobs-no-pruning: true
 
 beacon.api: [beacon, builder, config, debug, node, validator, lighthouse]

@@ -39,11 +39,11 @@ http.vhosts: "*"
 http.corsdomain: "*"
 http.api: [eth, erigon, web3, debug, net, trace] # txpool
 rpc.returndata.limit: 1100000
+rpc.gascap: 500000000
 # rpc.accessList: rules.json
-rpc.gascap: 300000000
-rpc.batch.limit: 200000 
-ws: false
-ws.compression: true
+# rpc.batch.limit: 200000 
+ws: true
+# ws.compression: true
 
 # metric
 metrics : false
