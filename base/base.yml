@@ -5,7 +5,7 @@ volumes:
 
 networks:
   base:
-    name: base
+    name: ${COMPOSE_PROJECT_NAME}
 
 services:
   execution:
@@ -15,13 +15,14 @@ services:
     container_name: ${COMPOSE_PROJECT_NAME}-execution
     restart: unless-stopped
     expose:
+      - 8545       # http
       - 8546       # websocket
       - 6060       # metrics
       - 8551
     ports:
-      - 30333:30303           # P2P TCP
-      - 30333:30303/udp       # P2P UDP
-      - 127.0.0.1:8575:8545   # RPC
+      - ${PORT_P2P:-30333}:30303           # P2P TCP
+      - ${PORT_P2P:-30333}:30303/udp       # P2P UDP
+      # - 127.0.0.1:8575:8545   # RPC
     command: [ "bash", "./execution-entrypoint" ]
     volumes:
       - ${DATABASE_PATH:-data}:/data
