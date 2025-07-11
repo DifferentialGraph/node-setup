@@ -1,6 +1,6 @@
 networks:
   arbitrum-one:
-    name: arbitrum-one
+    name: ${COMPOSE_PROJECT_NAME}
   nitro-data:
     external: true
     name: ${COMPOSE_PROJECT_NAME}_nitro-data
@@ -10,7 +10,7 @@ networks:
 
 services:
   arbitrum-one-nitro:
-    image: offchainlabs/nitro-node:${ARBITRUM_NITRO_TAG:-v3.2.1-d81324d}
+    image: offchainlabs/nitro-node:${ARBITRUM_NITRO_TAG:-v3.6.8-d6c96a5}
     container_name: ${COMPOSE_PROJECT_NAME}-nitro
     restart: unless-stopped
     stop_grace_period: 30s
@@ -19,10 +19,10 @@ services:
       - arbitrum-one
     volumes:
       - ${NITRO_DATABASE_PATH:-nitro-data}:/home/user/.arbitrum
-    ports:
-      - 127.0.0.1:8547:8547/tcp # http
+    # ports:
+    #   - 127.0.0.1:8547:8547/tcp # http
     expose:
-      # - 8547 # http
+      - 8547 # http
       - 8548 # ws
     command:
       - --init.url=https://snapshot.arbitrum.foundation/arb1/nitro-archive.tar
