@@ -2,12 +2,13 @@
 . $NODE_DIR/install --source
 
 node-stop() {
+    PROJECT_NAME="${2:-$1}"
     [ -f "$NODEDIR/$1/$1.yml" ] || { echo "Error: $1.yml file not found."; return 1; }
-    [ -f "$NODEDIR/$1/$1.env" ] || { echo "Error: $1.env file not found"; return 1; }
+    [ -f "$NODEDIR/$1/${PROJECT_NAME}.env" ] || { echo "Error: ${PROJECT_NAME}.env file not found"; return 1; }
 
-    COMPOSE_PROJECT_NAME=$1 \
+    COMPOSE_PROJECT_NAME=${PROJECT_NAME} \
     COMPOSE_FILE=$NODEDIR/$1/$1.yml \
-    docker compose --env-file $NODEDIR/$1/$1.env stop
+    docker compose --env-file $NODEDIR/$1/${PROJECT_NAME}.env stop
 }
 
 node-restart() {
@@ -15,70 +16,72 @@ node-restart() {
 }
 
 node-monitor() {
-    # Check if session name exists
-    SESSIONEXISTS=$(tmux list-sessions | grep $1)
+    PROJECT_NAME="${2:-$1}"
+
+    SESSIONEXISTS=$(tmux list-sessions | grep ${PROJECT_NAME})
 
     # Set up monitoring interface
     if [ "$SESSIONEXISTS" = "" ]
     then
-        tmux new-session -d -s $1
+        tmux new-session -d -s ${PROJECT_NAME}
         case $1 in
         "mainnet")
             [ -z "$( docker ps | grep ${1} )" ] && { echo "Node ${1} not found."; return; }
-            tmux rename-window -t 0 'mainnet-log' && tmux send-keys -t 'mainnet-log' "docker logs mainnet --tail 10 -f | pino-pretty -c -t" C-m
-            tmux new-window -t $1:1 -n 'mainnet-container' && tmux send-keys -t 'mainnet-container' "docker exec -it mainnet sh" C-m
+            tmux rename-window -t 0 'mainnet-log' && tmux send-keys -t 'mainnet-log' "docker logs ${PROJECT_NAME} --tail 10 -f | pino-pretty -c -t" C-m
+            tmux new-window -t ${PROJECT_NAME}:1 -n 'mainnet-container' && tmux send-keys -t 'mainnet-container' "docker exec -it ${PROJECT_NAME} sh" C-m
         ;;
         "gnosis")
-            tmux rename-window -t 0 'gnosis-log' && tmux send-keys -t 'gnosis-log' "docker logs gnosis --tail 10 -f | pino-pretty -c -t" C-m
-            tmux new-window -t $1:1 -n 'gnosis-container' && tmux send-keys -t 'gnosis-container' "docker exec -it gnosis sh" C-m
+            tmux rename-window -t 0 'gnosis-log' && tmux send-keys -t 'gnosis-log' "docker logs ${PROJECT_NAME} --tail 10 -f | pino-pretty -c -t" C-m
+            tmux new-window -t ${PROJECT_NAME}:1 -n 'gnosis-container' && tmux send-keys -t 'gnosis-container' "docker exec -it ${PROJECT_NAME} sh" C-m
         ;;
         "matic")
-            tmux rename-window -t 0 'matic-log' && tmux send-keys -t 'matic-log' "docker logs matic --tail 10 -f | pino-pretty -c -t" C-m
-            tmux new-window -t $1:1 -n 'matic-container' && tmux send-keys -t 'matic-container' "docker exec -it matic sh" C-m
+            tmux rename-window -t 0 'matic-log' && tmux send-keys -t 'matic-log' "docker logs ${PROJECT_NAME} --tail 10 -f | pino-pretty -c -t" C-m
+            tmux new-window -t ${PROJECT_NAME}:1 -n 'matic-container' && tmux send-keys -t 'matic-container' "docker exec -it ${PROJECT_NAME} sh" C-m
         ;;
         "arbitrum-one")    
-            tmux rename-window -t 0 'nitro-log' && tmux send-keys -t 'nitro-log' "docker logs ${1}-nitro --tail 10 -f | pino-pretty -c -t" C-m
-            tmux new-window -t $1:1 -n 'classic-log' && tmux send-keys -t 'classic-log' "docker logs ${1}-classic --tail 10 -f | pino-pretty -c -t" C-m
-            tmux new-window -t $1:2 -n 'nitro-cli' && tmux send-keys -t 'nitro-cli' "docker exec -it ${1}-nitro /bin/bash" C-m
-            tmux new-window -t $1:3 -n 'classic-cli' && tmux send-keys -t 'classic-cli' "docker exec -it ${1}-classic /bin/bash" C-m
+            tmux rename-window -t 0 'nitro-log' && tmux send-keys -t 'nitro-log' "docker logs ${PROJECT_NAME}-nitro --tail 10 -f | pino-pretty -c -t" C-m
+            tmux new-window -t ${PROJECT_NAME}:1 -n 'classic-log' && tmux send-keys -t 'classic-log' "docker logs ${PROJECT_NAME}-classic --tail 10 -f | pino-pretty -c -t" C-m
+            tmux new-window -t ${PROJECT_NAME}:2 -n 'nitro-cli' && tmux send-keys -t 'nitro-cli' "docker exec -it ${PROJECT_NAME}-nitro /bin/bash" C-m
+            tmux new-window -t ${PROJECT_NAME}:3 -n 'classic-cli' && tmux send-keys -t 'classic-cli' "docker exec -it ${PROJECT_NAME}-classic /bin/bash" C-m
         ;;
         "avalanche")
-            tmux rename-window -t 0 'avalanche-log' && tmux send-keys -t 'avalanche-log' "docker logs ${1} --tail 10 -f | pino-pretty -c -t" C-m
-            tmux new-window -t $1:1 -n 'avalanche-cli' && tmux send-keys -t 'avalanche-cli' "docker exec -it ${1} /bin/bash" C-m
+            tmux rename-window -t 0 'avalanche-log' && tmux send-keys -t 'avalanche-log' "docker logs ${PROJECT_NAME} --tail 10 -f | pino-pretty -c -t" C-m
+            tmux new-window -t ${PROJECT_NAME}:1 -n 'avalanche-cli' && tmux send-keys -t 'avalanche-cli' "docker exec -it ${PROJECT_NAME} /bin/bash" C-m
         ;;
         "optimism")
-            tmux rename-window -t 0 'op-geth' && tmux send-keys -t 'op-geth' "docker logs ${1}-op-geth --tail 10 -f | pino-pretty -c -t" C-m
-            tmux new-window -t $1:1 -n 'op-node' && tmux send-keys -t 'op-node' "docker logs ${1}-op-node --tail 10 -f | pino-pretty -c -t" C-m
-            tmux new-window -t $1:2 -n 'bedrock-init' && tmux send-keys -t 'bedrock-init' "docker logs ${1}-bedrock-init --tail 10 -f | pino-pretty -c -t" C-m
-            tmux new-window -t $1:3 -n 'l2geth' && tmux send-keys -t 'l2geth' "docker logs ${1}-l2geth --tail 10 -f | pino-pretty -c -t" C-m
+            tmux rename-window -t 0 'op-geth' && tmux send-keys -t 'op-geth' "docker logs ${PROJECT_NAME}-op-geth --tail 10 -f | pino-pretty -c -t" C-m
+            tmux new-window -t ${PROJECT_NAME}:1 -n 'op-node' && tmux send-keys -t 'op-node' "docker logs ${PROJECT_NAME}-op-node --tail 10 -f | pino-pretty -c -t" C-m
+            tmux new-window -t ${PROJECT_NAME}:2 -n 'bedrock-init' && tmux send-keys -t 'bedrock-init' "docker logs ${PROJECT_NAME}-bedrock-init --tail 10 -f | pino-pretty -c -t" C-m
+            tmux new-window -t ${PROJECT_NAME}:3 -n 'l2geth' && tmux send-keys -t 'l2geth' "docker logs ${PROJECT_NAME}-l2geth --tail 10 -f | pino-pretty -c -t" C-m
         ;;
         "celo")
-            tmux rename-window -t 0 'celo-log' && tmux send-keys -t 'celo-log' "docker logs celo --tail 10 -f | pino-pretty -c -t" C-m
-            tmux new-window -t $1:1 -n 'celo-cli' && tmux send-keys -t 'celo-cli' "docker exec -it celo /bin/bash" C-m
+            tmux rename-window -t 0 'celo-log' && tmux send-keys -t 'celo-log' "docker logs ${PROJECT_NAME} --tail 10 -f | pino-pretty -c -t" C-m
+            tmux new-window -t ${PROJECT_NAME}:1 -n 'celo-cli' && tmux send-keys -t 'celo-cli' "docker exec -it ${PROJECT_NAME} /bin/bash" C-m
         ;;
         "linea")
-            tmux rename-window -t 0 'linea-log' && tmux send-keys -t 'linea-log' "docker logs linea --tail 10 -f | pino-pretty -c -t" C-m
-            tmux new-window -t $1:1 -n 'linea-cli' && tmux send-keys -t 'linea-cli' "docker exec -it linea sh" C-m
+            tmux rename-window -t 0 'linea-log' && tmux send-keys -t 'linea-log' "docker logs ${PROJECT_NAME} --tail 10 -f | pino-pretty -c -t" C-m
+            tmux new-window -t ${PROJECT_NAME}:1 -n 'linea-cli' && tmux send-keys -t 'linea-cli' "docker exec -it ${PROJECT_NAME} sh" C-m
         ;;
         "base")
-            tmux rename-window -t 0 'base-execution-log' && tmux send-keys -t 'base-execution-log' "docker logs base-execution --tail 10 -f | pino-pretty -c -t" C-m
-            tmux new-window -t $1:1 -n 'base-node-log' && tmux send-keys -t 'base-node-log' "docker logs base-node --tail 10 -f | pino-pretty -c -t" C-m
-            tmux new-window -t $1:2 -n 'base-execution-cli' && tmux send-keys -t 'base-execution-cli' "docker exec -it base-execution /bin/bash" C-m
-            tmux new-window -t $1:3 -n 'base-node-cli' && tmux send-keys -t 'base-node-cli' "docker exec -it base-node /bin/bash" C-m
+            tmux rename-window -t 0 'base-execution-log' && tmux send-keys -t 'base-execution-log' "docker logs ${PROJECT_NAME}-execution --tail 10 -f | pino-pretty -c -t" C-m
+            tmux new-window -t ${PROJECT_NAME}:1 -n 'base-node-log' && tmux send-keys -t 'base-node-log' "docker logs ${PROJECT_NAME}-node --tail 10 -f | pino-pretty -c -t" C-m
+            tmux new-window -t ${PROJECT_NAME}:2 -n 'base-execution-cli' && tmux send-keys -t 'base-execution-cli' "docker exec -it ${PROJECT_NAME}-execution /bin/bash" C-m
+            tmux new-window -t ${PROJECT_NAME}:3 -n 'base-node-cli' && tmux send-keys -t 'base-node-cli' "docker exec -it ${PROJECT_NAME}-node /bin/bash" C-m
         ;;
         "fantom")
-            tmux rename-window -t 0 'fantom-cli' && tmux send-keys -t 'fantom-cli' "docker exec -it fantom /bin/bash" C-m
-            tmux new-window -t $1:1 -n 'fantom-log' && tmux send-keys -t 'fantom-log' "docker logs fantom --tail 10 -f | pino-pretty -c -t" C-m
+            tmux rename-window -t 0 'fantom-cli' && tmux send-keys -t 'fantom-cli' "docker exec -it ${PROJECT_NAME} /bin/bash" C-m
+            tmux new-window -t ${PROJECT_NAME}:1 -n 'fantom-log' && tmux send-keys -t 'fantom-log' "docker logs ${PROJECT_NAME} --tail 10 -f | pino-pretty -c -t" C-m
         ;;
         "scroll")
-            tmux rename-window -t 0 'scroll-log' && tmux send-keys -t 'scroll-log' "docker logs scroll --tail 10 -f | pino-pretty -c -t" C-m
-            tmux new-window -t $1:1 -n 'scroll-cli' && tmux send-keys -t 'scroll-cli' "docker exec -it scroll sh" C-m
+            tmux rename-window -t 0 'scroll-log' && tmux send-keys -t 'scroll-log' "docker logs ${PROJECT_NAME} --tail 10 -f | pino-pretty -c -t" C-m
+            tmux new-window -t ${PROJECT_NAME}:1 -n 'scroll-cli' && tmux send-keys -t 'scroll-cli' "docker exec -it ${PROJECT_NAME} sh" C-m
         ;;
         *)
+            tmux kill-session -t ${PROJECT_NAME}
             echo "Chain not supported!"
             return
         ;;
         esac
     fi
-    tmux attach-session -t $1:0
+    tmux attach-session -t ${PROJECT_NAME}:0
 }

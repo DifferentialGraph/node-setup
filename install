@@ -45,76 +45,76 @@ reverseproxy-check() {
 }
 
 node-start() {
-    ENV_FILE="${2:-$1}.env"
+    PROJECT_NAME="${2:-$1}"
 
     [ -f "$NODEDIR/$1/$1.yml" ] || { echo "Error: $1.yml file not found."; return 1; }
-    [ -f "$NODEDIR/$1/${ENV_FILE}" ] || { echo "Error: ${ENV_FILE} file not found"; return 1; }
-    source $NODEDIR/$1/${ENV_FILE}
+    [ -f "$NODEDIR/$1/${PROJECT_NAME}.env" ] || { echo "Error: ${PROJECT_NAME}.env file not found"; return 1; }
+    source $NODEDIR/$1/${PROJECT_NAME}.env
 
     case $1 in
         "mainnet")
-            [ -z $CONFIG_PATH ] && ! volume-exists mainnet_config && docker volume create mainnet_config
+            [ -z $CONFIG_PATH ] && ! volume-exists ${PROJECT_NAME}_config && docker volume create ${PROJECT_NAME}_config
             if [ "${ERIGON_TAG:0:2}" = "v2" ]; then
-                cp $NODEDIR/mainnet/config-v2.yaml ${CONFIG_PATH:-/var/lib/docker/volumes/mainnet_config/_data}/config.yaml
+                cp $NODEDIR/mainnet/config-v2.yaml ${CONFIG_PATH:-/var/lib/docker/volumes/${PROJECT_NAME}_config/_data}/config.yaml
             else
-                cp $NODEDIR/mainnet/config.yaml ${CONFIG_PATH:-/var/lib/docker/volumes/mainnet_config/_data}/config.yaml
+                cp $NODEDIR/mainnet/config.yaml ${CONFIG_PATH:-/var/lib/docker/volumes/${PROJECT_NAME}_config/_data}/config.yaml
             fi
 
-            [ -z $DATABASE_PATH ] && ! volume-exists mainnet_data && docker volume create mainnet_data
+            [ -z $DATABASE_PATH ] && ! volume-exists ${PROJECT_NAME}_data && docker volume create ${PROJECT_NAME}_data
             ;;
         "gnosis")
-            [ -z $CONFIG_PATH ] && ! volume-exists gnosis_config && docker volume create gnosis_config
+            [ -z $CONFIG_PATH ] && ! volume-exists ${PROJECT_NAME}_config && docker volume create ${PROJECT_NAME}_config
             if [ "${ERIGON_TAG:0:2}" = "v2" ]; then
-                cp $NODEDIR/gnosis/config-v2.yaml ${CONFIG_PATH:-/var/lib/docker/volumes/gnosis_config/_data}/config.yaml
+                cp $NODEDIR/gnosis/config-v2.yaml ${CONFIG_PATH:-/var/lib/docker/volumes/${PROJECT_NAME}_config/_data}/config.yaml
             else
-                cp $NODEDIR/gnosis/config.yaml ${CONFIG_PATH:-/var/lib/docker/volumes/gnosis_config/_data}/config.yaml
+                cp $NODEDIR/gnosis/config.yaml ${CONFIG_PATH:-/var/lib/docker/volumes/${PROJECT_NAME}_config/_data}/config.yaml
             fi
 
-            [ -z $DATABASE_PATH ] && ! volume-exists gnosis_data && docker volume create gnosis_data
+            [ -z $DATABASE_PATH ] && ! volume-exists ${PROJECT_NAME}_data && docker volume create ${PROJECT_NAME}_data
             ;;
         "matic")
-            [ -z $CONFIG_PATH ] && ! volume-exists matic_config && docker volume create matic_config
+            [ -z $CONFIG_PATH ] && ! volume-exists ${PROJECT_NAME}_config && docker volume create ${PROJECT_NAME}_config
             if [ "${ERIGON_TAG:0:2}" = "v2" ]; then
-                cp $NODEDIR/matic/config-v2.yaml ${CONFIG_PATH:-/var/lib/docker/volumes/matic_config/_data}/config.yaml
+                cp $NODEDIR/matic/config-v2.yaml ${CONFIG_PATH:-/var/lib/docker/volumes/${PROJECT_NAME}_config/_data}/config.yaml
             else
-                cp $NODEDIR/matic/config.yaml ${CONFIG_PATH:-/var/lib/docker/volumes/matic_config/_data}/config.yaml
+                cp $NODEDIR/matic/config.yaml ${CONFIG_PATH:-/var/lib/docker/volumes/${PROJECT_NAME}_config/_data}/config.yaml
             fi
 
-            [ -z $DATABASE_PATH ] && ! volume-exists matic_data && docker volume create matic_data
+            [ -z $DATABASE_PATH ] && ! volume-exists ${PROJECT_NAME}_data && docker volume create ${PROJECT_NAME}_data
             ;;
         "arbitrum-one")
-            [ -z $CLASSIC_DATABASE_PATH ] && ! volume-exists arbitrum-one_classic-data && docker volume create arbitrum-one_classic-data
-            # curl https://snapshot.arbitrum.foundation/arb1/classic-archive.tar | tar -xv -C  ${CLASSIC_DATABASE_PATH:-"/var/lib/docker/volumes/arbitrum-one_classic-data/_data/"}
+            [ -z $CLASSIC_DATABASE_PATH ] && ! volume-exists ${PROJECT_NAME}_classic-data && docker volume create ${PROJECT_NAME}_classic-data
+            # curl https://snapshot.arbitrum.foundation/arb1/classic-archive.tar | tar -xv -C  ${CLASSIC_DATABASE_PATH:-"/var/lib/docker/volumes/${PROJECT_NAME}_classic-data/_data/"}
 
-            [ -z $NITRO_DATABASE_PATH ] && ! volume-exists arbitrum-one_nitro-data && docker volume create arbitrum-one_nitro-data
+            [ -z $NITRO_DATABASE_PATH ] && ! volume-exists ${PROJECT_NAME}_nitro-data && docker volume create ${PROJECT_NAME}_nitro-data
             ;;
         "avalanche")
-            [ -z $CONFIG_PATH ] && ! volume-exists avalanche_config && docker volume create avalanche_config
-            cp $NODE_DIR/avalanche/node.json ${CONFIG_PATH:-/var/lib/docker/volumes/avalanche_config/_data/}
+            [ -z $CONFIG_PATH ] && ! volume-exists ${PROJECT_NAME}_config && docker volume create ${PROJECT_NAME}_config
+            cp $NODE_DIR/avalanche/node.json ${CONFIG_PATH:-/var/lib/docker/volumes/${PROJECT_NAME}_config/_data/}
 
-            [ -z $CCONFIG_PATH ] && ! volume-exists avalanche_c-config && docker volume create avalanche_c-config
-            cp $NODE_DIR/avalanche/config.json ${CCONFIG_PATH:-/var/lib/docker/volumes/avalanche_c-config/_data/}
+            [ -z $CCONFIG_PATH ] && ! volume-exists ${PROJECT_NAME}_c-config && docker volume create ${PROJECT_NAME}_c-config
+            cp $NODE_DIR/avalanche/config.json ${CCONFIG_PATH:-/var/lib/docker/volumes/${PROJECT_NAME}_c-config/_data/}
 
-            [ -z $DATABASE_PATH ] && ! volume-exists avalanche_data && docker volume create avalanche_data
+            [ -z $DATABASE_PATH ] && ! volume-exists ${PROJECT_NAME}_data && docker volume create ${PROJECT_NAME}_data
             ;;
         "optimism")
-            [ -z $SCRIPTS_PATH ] && ! volume-exists optimism_scripts && docker volume create optimism_scripts
-            cp $NODE_DIR/optimism/scripts/* ${SCRIPTS_PATH:-/var/lib/docker/volumes/optimism_scripts/_data/}
+            [ -z $SCRIPTS_PATH ] && ! volume-exists ${PROJECT_NAME}_scripts && docker volume create ${PROJECT_NAME}_scripts
+            cp $NODE_DIR/optimism/scripts/* ${SCRIPTS_PATH:-/var/lib/docker/volumes/${PROJECT_NAME}_scripts/_data/}
 
-            [ -z $CONFIG_PATH ] && ! volume-exists optimism_config && docker volume create optimism_config
-            [ -z $SHARED_PATH ] && ! volume-exists optimism_shared && docker volume create optimism_shared
-            [ -z $DOWNLOADS_PATH ] && ! volume-exists optimism_downloads && docker volume create optimism_downloads
-            [ -z $INFLUXDB_PATH ] && ! volume-exists optimism_influxdb && docker volume create optimism_influxdb
-            [ -z $OPGETH_DATABASE_PATH ] && ! volume-exists optimism_opgeth && docker volume create optimism_opgeth
-            [ -z $L2GETH_DATABASE_PATH ] && ! volume-exists optimism_l2geth && docker volume create optimism_l2geth
+            [ -z $CONFIG_PATH ] && ! volume-exists ${PROJECT_NAME}_config && docker volume create ${PROJECT_NAME}_config
+            [ -z $SHARED_PATH ] && ! volume-exists ${PROJECT_NAME}_shared && docker volume create ${PROJECT_NAME}_shared
+            [ -z $DOWNLOADS_PATH ] && ! volume-exists ${PROJECT_NAME}_downloads && docker volume create ${PROJECT_NAME}_downloads
+            [ -z $INFLUXDB_PATH ] && ! volume-exists ${PROJECT_NAME}_influxdb && docker volume create ${PROJECT_NAME}_influxdb
+            [ -z $OPGETH_DATABASE_PATH ] && ! volume-exists ${PROJECT_NAME}_opgeth && docker volume create ${PROJECT_NAME}_opgeth
+            [ -z $L2GETH_DATABASE_PATH ] && ! volume-exists ${PROJECT_NAME}_l2geth && docker volume create ${PROJECT_NAME}_l2geth
             ;;
         "celo")
             # apt install libusb-1.0-0-dev libudev-dev
             # npm install -g @celo/celocli
-            [ -z $DATABASE_PATH ] && ! volume-exists celo_data && docker volume create celo_data
+            [ -z $DATABASE_PATH ] && ! volume-exists ${PROJECT_NAME}_data && docker volume create ${PROJECT_NAME}_data
             ;;
         "base")
-            [ -z $DATABASE_PATH ] && ! volume-exists base_data && docker volume create base_data
+            [ -z $DATABASE_PATH ] && ! volume-exists ${PROJECT_NAME}_data && docker volume create ${PROJECT_NAME}_data
             # tar --use-compress-program=unzstd -xvf archive.tar.zst
             # SNAP_LATEST=$(curl https://mainnet-archive-snapshots.base.org/latest)
             # cd ${DATABASE_PATH:-"/var/lib/docker/volumes/base_data/_data/"} && \
@@ -123,10 +123,10 @@ node-start() {
             # rm -rf $SNAP_LATEST
             ;;
         "linea")
-            [ -z $DATABASE_PATH ] && ! volume-exists linea_data && docker volume create linea_data
+            [ -z $DATABASE_PATH ] && ! volume-exists ${PROJECT_NAME}_data && docker volume create ${PROJECT_NAME}_data
             ;;
         "scroll")
-            [ -z $DATABASE_PATH ] && ! volume-exists scroll_data && docker volume create scroll_data
+            [ -z $DATABASE_PATH ] && ! volume-exists ${PROJECT_NAME}_data && docker volume create ${PROJECT_NAME}_data
             ;;
         *)
             echo "Chain not supported yet!"
@@ -134,37 +134,37 @@ node-start() {
             ;;
     esac
 
-    COMPOSE_PROJECT_NAME=$1 \
+    COMPOSE_PROJECT_NAME=${PROJECT_NAME} \
     COMPOSE_FILE=$NODE_DIR/$1/$1.yml \
-    docker compose --env-file $NODEDIR/$1/${ENV_FILE} pull
+    docker compose --env-file $NODEDIR/$1/${PROJECT_NAME}.env pull
 
-    COMPOSE_PROJECT_NAME=$1 \
+    COMPOSE_PROJECT_NAME=${PROJECT_NAME} \
     COMPOSE_FILE=$NODE_DIR/$1/$1.yml \
-    docker compose --env-file $NODEDIR/$1/${ENV_FILE} up -d --remove-orphans --build
+    docker compose --env-file $NODEDIR/$1/${PROJECT_NAME}.env up -d --remove-orphans --build
 
     if [ ! -z $MAINNET_LOCAL_NETWORK ]; then
         case $1 in
             "arbitrum-one")
-                nets=$(docker container inspect --format '{{range $net,$v := .NetworkSettings.Networks}}{{printf "%s\n" $net}}{{end}}' arbitrum-one-nitro)
-                [[ ! ${nets[@]} =~ "$MAINNET_LOCAL_NETWORK" ]] && docker network connect $MAINNET_LOCAL_NETWORK arbitrum-one-nitro
-                nets=$(docker container inspect --format '{{range $net,$v := .NetworkSettings.Networks}}{{printf "%s\n" $net}}{{end}}' arbitrum-one-classic)
-                [[ ! ${nets[@]} =~ "$MAINNET_LOCAL_NETWORK" ]] && docker network connect $MAINNET_LOCAL_NETWORK arbitrum-one-classic
+                nets=$(docker container inspect --format '{{range $net,$v := .NetworkSettings.Networks}}{{printf "%s\n" $net}}{{end}}' ${PROJECT_NAME}-nitro)
+                [[ ! ${nets[@]} =~ "$MAINNET_LOCAL_NETWORK" ]] && docker network connect $MAINNET_LOCAL_NETWORK ${PROJECT_NAME}-nitro
+                nets=$(docker container inspect --format '{{range $net,$v := .NetworkSettings.Networks}}{{printf "%s\n" $net}}{{end}}' ${PROJECT_NAME}-classic)
+                [[ ! ${nets[@]} =~ "$MAINNET_LOCAL_NETWORK" ]] && docker network connect $MAINNET_LOCAL_NETWORK ${PROJECT_NAME}-classic
             ;;
             "optimism")
-                nets=$(docker container inspect --format '{{range $net,$v := .NetworkSettings.Networks}}{{printf "%s\n" $net}}{{end}}' optimism-op-node)
-                [[ ! ${nets[@]} =~ "$MAINNET_LOCAL_NETWORK" ]] && docker network connect $MAINNET_LOCAL_NETWORK optimism-op-node
-                nets=$(docker container inspect --format '{{range $net,$v := .NetworkSettings.Networks}}{{printf "%s\n" $net}}{{end}}' optimism-l2geth)
-                [[ ! ${nets[@]} =~ "$MAINNET_LOCAL_NETWORK" ]] && docker network connect $MAINNET_LOCAL_NETWORK optimism-l2geth
+                nets=$(docker container inspect --format '{{range $net,$v := .NetworkSettings.Networks}}{{printf "%s\n" $net}}{{end}}' ${PROJECT_NAME}-op-node)
+                [[ ! ${nets[@]} =~ "$MAINNET_LOCAL_NETWORK" ]] && docker network connect $MAINNET_LOCAL_NETWORK ${PROJECT_NAME}-op-node
+                nets=$(docker container inspect --format '{{range $net,$v := .NetworkSettings.Networks}}{{printf "%s\n" $net}}{{end}}' ${PROJECT_NAME}-l2geth)
+                [[ ! ${nets[@]} =~ "$MAINNET_LOCAL_NETWORK" ]] && docker network connect $MAINNET_LOCAL_NETWORK ${PROJECT_NAME}-l2geth
             ;;
             "base")
-                nets=$(docker container inspect --format '{{range $net,$v := .NetworkSettings.Networks}}{{printf "%s\n" $net}}{{end}}' base-execution)
-                [[ ! ${nets[@]} =~ "$MAINNET_LOCAL_NETWORK" ]] && docker network connect $MAINNET_LOCAL_NETWORK base-execution
-                nets=$(docker container inspect --format '{{range $net,$v := .NetworkSettings.Networks}}{{printf "%s\n" $net}}{{end}}' base-node)
-                [[ ! ${nets[@]} =~ "$MAINNET_LOCAL_NETWORK" ]] && docker network connect $MAINNET_LOCAL_NETWORK base-node
+                nets=$(docker container inspect --format '{{range $net,$v := .NetworkSettings.Networks}}{{printf "%s\n" $net}}{{end}}' ${PROJECT_NAME}-execution)
+                [[ ! ${nets[@]} =~ "$MAINNET_LOCAL_NETWORK" ]] && docker network connect $MAINNET_LOCAL_NETWORK ${PROJECT_NAME}-execution
+                nets=$(docker container inspect --format '{{range $net,$v := .NetworkSettings.Networks}}{{printf "%s\n" $net}}{{end}}' ${PROJECT_NAME}-node)
+                [[ ! ${nets[@]} =~ "$MAINNET_LOCAL_NETWORK" ]] && docker network connect $MAINNET_LOCAL_NETWORK ${PROJECT_NAME}-node
             ;;
-            "scroll")
-                nets=$(docker container inspect --format '{{range $net,$v := .NetworkSettings.Networks}}{{printf "%s\n" $net}}{{end}}' scroll)
-                [[ ! ${nets[@]} =~ "$MAINNET_LOCAL_NETWORK" ]] && docker network connect $MAINNET_LOCAL_NETWORK scroll
+            *)
+                nets=$(docker container inspect --format '{{range $net,$v := .NetworkSettings.Networks}}{{printf "%s\n" $net}}{{end}}' ${PROJECT_NAME})
+                [[ ! ${nets[@]} =~ "$MAINNET_LOCAL_NETWORK" ]] && docker network connect $MAINNET_LOCAL_NETWORK ${PROJECT_NAME}
             ;;
         esac 
     fi
@@ -174,16 +174,16 @@ node-start() {
 
         case $1 in
             "arbitrum-one")
-                container=$1-nitro
+                container=${PROJECT_NAME}-nitro
             ;;
             "optimism")
-                container=$1-op-geth
+                container=${PROJECT_NAME}-op-geth
             ;;
             "base")
-                container=$1-execution
+                container=${PROJECT_NAME}-execution
             ;;
             *)
-                container=$1
+                container=${PROJECT_NAME}
             ;;
         esac
 
@@ -193,13 +193,13 @@ node-start() {
         fi
 
         VHOST_PATH=/var/lib/docker/volumes/reverse-proxy_vhost/_data
-        [ -f "${VHOST_PATH}/${SUBDOMAIN:-$1}.${HOST}" ] && rm ${VHOST_PATH}/${SUBDOMAIN:-$1}.${HOST}
+        [ -f "${VHOST_PATH}/${SUBDOMAIN:-${PROJECT_NAME}}.${HOST}" ] && rm ${VHOST_PATH}/${SUBDOMAIN:-${PROJECT_NAME}}.${HOST}
 
         if [ ! -z $WHITELIST ]; then
             for (( j=0; j<${#WHITELIST[@]}; j++ )); do
-                echo "allow ${WHITELIST[$j]};" >> ${VHOST_PATH}/${SUBDOMAIN:-$1}.${HOST}
+                echo "allow ${WHITELIST[$j]};" >> ${VHOST_PATH}/${SUBDOMAIN:-${PROJECT_NAME}}.${HOST}
             done
-            echo "deny all;" >> ${VHOST_PATH}/${SUBDOMAIN:-$1}.${HOST}
+            echo "deny all;" >> ${VHOST_PATH}/${SUBDOMAIN:-${PROJECT_NAME}}.${HOST}
         fi
     fi
     # unset HOST SUBDOMAIN WHITELIST DATABASE_PATH MAINNET_LOCAL_NETWORK
@@ -210,6 +210,7 @@ node-install() {
         "mainnet" "Ethereum Mainnet" OFF \
         "arbitrum-one" "Arbitrum-One Nitro & Classic" OFF \
         "matic" "Polygon Matic" OFF \
+        "gnosis" "Gnosis" OFF \
         "optimism" "Optimism" OFF \
         "avalanche" "Avalanche" OFF \
         "celo" "Celo" OFF \
@@ -222,7 +223,7 @@ node-install() {
         { echo "No option selected"; return; }
     else
         for CHAIN in $CHAINS; do
-            ENVFILE=$(whiptail --title "Blockchain Node Setup" --inputbox "Environment file $CHAIN" 8 78 "$CHAIN" 3>&1 1>&2 2>&3) || return
+            ENVFILE=$(whiptail --title "Blockchain Node Setup" --inputbox "Project name for $CHAIN (same as environment file)" 8 78 "$CHAIN" 3>&1 1>&2 2>&3) || return
             node-start $CHAIN $ENVFILE
         done
     fi
