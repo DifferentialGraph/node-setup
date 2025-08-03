@@ -10,3 +10,4 @@
 !optimism/envs/*
 !base-template.env
 !scroll-template.env
+!base/versions.env
