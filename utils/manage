@@ -2,13 +2,15 @@
 . $NODE_DIR/install --source
 
 node-stop() {
-    PROJECT_NAME="${2:-$1}"
+    [ -z "$1" ] || { echo "Error: provide chain id"; return 1 }
     [ -f "$NODEDIR/$1/$1.yml" ] || { echo "Error: $1.yml file not found."; return 1; }
-    [ -f "$NODEDIR/$1/${PROJECT_NAME}.env" ] || { echo "Error: ${PROJECT_NAME}.env file not found"; return 1; }
+    PROJECT_NAME="${2:-$1}"
+    ENV_FILE="${3:-$NODEDIR/$1/${PROJECT_NAME}}"
+    [ -f "$ENV_FILE.env" ] || { echo "Error: $ENV_FILE.env file not found"; return 1; }
 
     COMPOSE_PROJECT_NAME=${PROJECT_NAME} \
     COMPOSE_FILE=$NODEDIR/$1/$1.yml \
-    docker compose --env-file $NODEDIR/$1/${PROJECT_NAME}.env stop
+    docker compose --env-file "$ENV_FILE.env" stop
 }
 
 node-restart() {

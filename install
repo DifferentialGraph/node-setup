@@ -44,12 +44,13 @@ reverseproxy-check() {
     fi
 }
 
-node-start() {
-    PROJECT_NAME="${2:-$1}"
-
+node-start() { # 1. chain id 2. node name 3. env path
+    [ -z "$1" ] || { echo "Error: provide chain id"; return 1 }
     [ -f "$NODEDIR/$1/$1.yml" ] || { echo "Error: $1.yml file not found."; return 1; }
-    [ -f "$NODEDIR/$1/${PROJECT_NAME}.env" ] || { echo "Error: ${PROJECT_NAME}.env file not found"; return 1; }
-    source $NODEDIR/$1/${PROJECT_NAME}.env
+    PROJECT_NAME="${2:-$1}"
+    ENV_FILE="${3:-$NODEDIR/$1/${PROJECT_NAME}}"
+    [ -f "$ENV_FILE.env" ] || { echo "Error: $ENV_FILE.env file not found"; return 1; }
+    source $ENV_FILE.env
 
     case $1 in
         "mainnet")
@@ -135,12 +136,12 @@ node-start() {
     esac
 
     COMPOSE_PROJECT_NAME=${PROJECT_NAME} \
-    COMPOSE_FILE=$NODE_DIR/$1/$1.yml \
-    docker compose --env-file $NODEDIR/$1/${PROJECT_NAME}.env pull
+    COMPOSE_FILE=$NODEDIR/$1/$1.yml \
+    docker compose --env-file $ENV_FILE.env pull
 
     COMPOSE_PROJECT_NAME=${PROJECT_NAME} \
-    COMPOSE_FILE=$NODE_DIR/$1/$1.yml \
-    docker compose --env-file $NODEDIR/$1/${PROJECT_NAME}.env up -d --remove-orphans --build
+    COMPOSE_FILE=$NODEDIR/$1/$1.yml \
+    docker compose --env-file $ENV_FILE.env up -d --remove-orphans --build
 
     if [ ! -z $MAINNET_LOCAL_NETWORK ]; then
         case $1 in
