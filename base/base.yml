@@ -31,6 +31,7 @@ services:
     networks:
       - base
     environment:
+      NODE_TYPE: ${NODE_TYPE:-vanilla}
       LETSENCRYPT_HOST: ${SUBDOMAIN:-base}.${HOST}
       VIRTUAL_HOST_MULTIPORTS: |-
         ${SUBDOMAIN:-base}.${HOST}:
