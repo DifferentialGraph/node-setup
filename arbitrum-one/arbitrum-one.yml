@@ -33,6 +33,8 @@ services:
       - --parent-chain.connection.url=${MAINNET_RPC_EXECUTION}
       - --parent-chain.blob-client.beacon-url=${MAINNET_RPC_CONSENSUS}
       - --chain.id=42161
+      - --execution.rpc.gas-cap=0
+      - --execution.rpc.tx-fee-cap=0
       - --http.api=net,web3,eth,debug 
       - --http.corsdomain=* 
       - --http.addr=0.0.0.0 
