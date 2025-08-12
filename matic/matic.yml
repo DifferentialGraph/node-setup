@@ -6,7 +6,6 @@ volumes:
     external: true
     name: ${COMPOSE_PROJECT_NAME}_data
   heimdall:
-    external: true
     name: ${COMPOSE_PROJECT_NAME}_heimdall
 
 networks:
