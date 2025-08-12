@@ -54,7 +54,7 @@ services:
     container_name: ${COMPOSE_PROJECT_NAME}-heimdalld
     restart: unless-stopped
     volumes:
-      - ${HEIMDALL_PATH:-heimdall}:/heimdall
+      - ${HEIMDALL_PATH:-heimdall}:/root/.heimdalld
     ports:
       - 26656:26656 # P2P (TCP)
     expose:
@@ -69,7 +69,7 @@ services:
     container_name: ${COMPOSE_PROJECT_NAME}-heimdallr
     restart: unless-stopped
     volumes:
-      - ${HEIMDALL_PATH:-heimdall}/heimdall
+      - ${HEIMDALL_PATH:-heimdall}:/root/.heimdalld
     ports:
       - 127.0.0.1:1317:1317 # Heimdall REST API
     depends_on:
