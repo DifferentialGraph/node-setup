@@ -72,6 +72,8 @@ services:
       - --p2p.upnp=false
       - --pruning=syncable
       - --with-tendermint=true
+    networks:
+      - matic
 
   heimdallr:
     image: 0xpolygon/heimdall-v2:${HEIMDALL_TAG:-0.2.16}
@@ -89,3 +91,5 @@ services:
       - --node=tcp://${COMPOSE_PROJECT_NAME}-heimdalld:26657
       - --max-open=1000
       - --trust-node=true
+    networks:
+      - matic
