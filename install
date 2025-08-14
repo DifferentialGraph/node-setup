@@ -55,33 +55,24 @@ node-start() { # 1. chain id 2. node name 3. env path
     case $1 in
         "mainnet")
             [ -z $CONFIG_PATH ] && ! volume-exists ${PROJECT_NAME}_config && docker volume create ${PROJECT_NAME}_config
-            if [ "${ERIGON_TAG:0:2}" = "v2" ]; then
-                cp $NODEDIR/mainnet/config-v2.yaml ${CONFIG_PATH:-/var/lib/docker/volumes/${PROJECT_NAME}_config/_data}/config.yaml
-            else
-                cp $NODEDIR/mainnet/config.yaml ${CONFIG_PATH:-/var/lib/docker/volumes/${PROJECT_NAME}_config/_data}/config.yaml
-            fi
+            cp $NODEDIR/mainnet/config.yaml ${CONFIG_PATH:-/var/lib/docker/volumes/${PROJECT_NAME}_config/_data}/config.yaml
 
             [ -z $DATABASE_PATH ] && ! volume-exists ${PROJECT_NAME}_data && docker volume create ${PROJECT_NAME}_data
             ;;
         "gnosis")
             [ -z $CONFIG_PATH ] && ! volume-exists ${PROJECT_NAME}_config && docker volume create ${PROJECT_NAME}_config
-            if [ "${ERIGON_TAG:0:2}" = "v2" ]; then
-                cp $NODEDIR/gnosis/config-v2.yaml ${CONFIG_PATH:-/var/lib/docker/volumes/${PROJECT_NAME}_config/_data}/config.yaml
-            else
-                cp $NODEDIR/gnosis/config.yaml ${CONFIG_PATH:-/var/lib/docker/volumes/${PROJECT_NAME}_config/_data}/config.yaml
-            fi
+            cp $NODEDIR/gnosis/config.yaml ${CONFIG_PATH:-/var/lib/docker/volumes/${PROJECT_NAME}_config/_data}/config.yaml
 
             [ -z $DATABASE_PATH ] && ! volume-exists ${PROJECT_NAME}_data && docker volume create ${PROJECT_NAME}_data
             ;;
         "matic")
             [ -z $CONFIG_PATH ] && ! volume-exists ${PROJECT_NAME}_config && docker volume create ${PROJECT_NAME}_config
-            if [ "${ERIGON_TAG:0:2}" = "v2" ]; then
-                cp $NODEDIR/matic/config-v2.yaml ${CONFIG_PATH:-/var/lib/docker/volumes/${PROJECT_NAME}_config/_data}/config.yaml
-            else
-                cp $NODEDIR/matic/config.yaml ${CONFIG_PATH:-/var/lib/docker/volumes/${PROJECT_NAME}_config/_data}/config.yaml
-            fi
+            cp $NODEDIR/matic/config.yaml ${CONFIG_PATH:-/var/lib/docker/volumes/${PROJECT_NAME}_config/_data}/config.yaml
 
             [ -z $DATABASE_PATH ] && ! volume-exists ${PROJECT_NAME}_data && docker volume create ${PROJECT_NAME}_data
+
+            [ -z $HEIMDALL_PATH ] && ! volume-exists ${PROJECT_NAME}_heimdall && docker volume create ${PROJECT_NAME}_heimdall
+            cp $NODEDIR/matic/heimdall-entrypoint.sh ${HEIMDALL_PATH:-/var/lib/docker/volumes/${PROJECT_NAME}_heimdall/_data}/heimdall-entrypoint.sh
             ;;
         "arbitrum-one")
             [ -z $CLASSIC_DATABASE_PATH ] && ! volume-exists ${PROJECT_NAME}_classic-data && docker volume create ${PROJECT_NAME}_classic-data
@@ -162,6 +153,12 @@ node-start() { # 1. chain id 2. node name 3. env path
                 [[ ! ${nets[@]} =~ "$MAINNET_LOCAL_NETWORK" ]] && docker network connect $MAINNET_LOCAL_NETWORK ${PROJECT_NAME}-execution
                 nets=$(docker container inspect --format '{{range $net,$v := .NetworkSettings.Networks}}{{printf "%s\n" $net}}{{end}}' ${PROJECT_NAME}-node)
                 [[ ! ${nets[@]} =~ "$MAINNET_LOCAL_NETWORK" ]] && docker network connect $MAINNET_LOCAL_NETWORK ${PROJECT_NAME}-node
+            ;;
+            "matic")
+                nets=$(docker container inspect --format '{{range $net,$v := .NetworkSettings.Networks}}{{printf "%s\n" $net}}{{end}}' ${PROJECT_NAME}-heimdalld)
+                [[ ! ${nets[@]} =~ "$MAINNET_LOCAL_NETWORK" ]] && docker network connect $MAINNET_LOCAL_NETWORK ${PROJECT_NAME}-heimdalld
+                nets=$(docker container inspect --format '{{range $net,$v := .NetworkSettings.Networks}}{{printf "%s\n" $net}}{{end}}' ${PROJECT_NAME}-heimdallr)
+                [[ ! ${nets[@]} =~ "$MAINNET_LOCAL_NETWORK" ]] && docker network connect $MAINNET_LOCAL_NETWORK ${PROJECT_NAME}-heimdallr
             ;;
             *)
                 nets=$(docker container inspect --format '{{range $net,$v := .NetworkSettings.Networks}}{{printf "%s\n" $net}}{{end}}' ${PROJECT_NAME})
