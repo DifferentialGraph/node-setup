@@ -56,5 +56,5 @@ pprof.addr: 0.0.0.0
 pprof.port: 6061
 
 snap.stop : true
-bor.heimdall : https://heimdall.stakesystems.io
+# bor.heimdall : https://polygon-heimdall-rest.publicnode.com
 # snap.keepblocks: true

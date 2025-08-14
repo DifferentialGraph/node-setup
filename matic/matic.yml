@@ -6,6 +6,7 @@ volumes:
     external: true
     name: ${COMPOSE_PROJECT_NAME}_data
   heimdall:
+    external: true
     name: ${COMPOSE_PROJECT_NAME}_heimdall
 
 networks:
@@ -54,22 +55,30 @@ services:
     container_name: ${COMPOSE_PROJECT_NAME}-heimdalld
     restart: unless-stopped
     volumes:
-      - ${HEIMDALL_PATH:-heimdall}:/root/.heimdalld
+      - ${HEIMDALL_PATH:-heimdall}:/root/.heimdall
+    environment:
+      - ETH_RPC_URL=${ETH_RPC_URL}
+      - MATIC_RPC_URL=${COMPOSE_PROJECT_NAME}:8545
     ports:
       - 26656:26656 # P2P (TCP)
     expose:
       - 26657 # RPC (TCP)
+    entrypoint: /root/.heimdall/heimdall-entrypoint.sh
     command:
       - start
       - --p2p.laddr=tcp://0.0.0.0:26656
       - --rpc.laddr=tcp://0.0.0.0:26657
+      - --fast_sync
+      - --p2p.upnp=false
+      - --pruning=syncable
+      - --with-tendermint=true
 
   heimdallr:
     image: 0xpolygon/heimdall-v2:${HEIMDALL_TAG:-0.2.16}
     container_name: ${COMPOSE_PROJECT_NAME}-heimdallr
     restart: unless-stopped
     volumes:
-      - ${HEIMDALL_PATH:-heimdall}:/root/.heimdalld
+      - ${HEIMDALL_PATH:-heimdall}/heimdall
     ports:
       - 127.0.0.1:1317:1317 # Heimdall REST API
     depends_on:
@@ -78,3 +87,5 @@ services:
       - rest-server
       - --laddr=tcp://0.0.0.0:1317
       - --node=tcp://${COMPOSE_PROJECT_NAME}-heimdalld:26657
+      - --max-open=1000
+      - --trust-node=true
