@@ -1,3 +1,5 @@
+#!/usr/bin/env sh
+
 # exit script on any error
 set -e
 
