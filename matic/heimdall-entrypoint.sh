@@ -21,7 +21,7 @@ then
     echo "overwriting toml config lines"
     # config.toml
     sed -i "s#^cors_allowed_origins.*#cors_allowed_origins = [\"*\"]#" config.toml
-    sed -i "s#^seeds.*#seeds = \f4f605d60b8ffaaf15240564e58a81103510631c@159.203.9.164:26656,4fb1bc820088764a564d4f66bba1963d47d82329@44.232.55.71:26656,2eadba4be3ce47ac8db0a3538cb923b57b41c927@35.199.4.13:26656,3b23b20017a6f348d329c102ddc0088f0a10a444@35.221.13.28:26656,25f5f65a09c56e9f1d2d90618aa70cd358aa68da@35.230.116.151:26656\"#" config.toml
+    sed -i "s#^seeds.*#seeds = \"7f3049e88ac7f820fd86d9120506aaec0dc54b27@34.89.75.187:26656,2d5484feef4257e56ece025633a6ea132d8cadca@35.246.99.203:26656,72a83490309f9f63fdca3a0bef16c290e5cbb09c@35.246.95.65:26656,00677b1b2c6282fb060b7bb6e9cc7d2d05cdd599@34.105.180.11:26656,721dd4cebfc4b78760c7ee5d7b1b44d29a0aa854@34.147.169.102:26656,4760b3fc04648522a0bcb2d96a10aadee141ee89@34.89.55.74:26656\"#" config.toml
     # app.toml
     sed -i "s#^bor_rpc_url.*#bor_rpc_url = \"http://${MATIC_RPC_URL}\"#" app.toml
     sed -i "s#^eth_rpc_url.*#eth_rpc_url = \"http://${ETH_RPC_URL}\"#" app.toml
