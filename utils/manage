@@ -42,7 +42,7 @@ node-monitor() {
             tmux new-window -t ${PROJECT_NAME}:2 -n 'heimdalld-log' && tmux send-keys -t 'heimdalld-log' "docker logs ${PROJECT_NAME}-heimdalld --tail 10 -f | pino-pretty -c -t" C-m
             tmux new-window -t ${PROJECT_NAME}:3 -n 'heimdallr-log' && tmux send-keys -t 'heimdallr-log' "docker logs ${PROJECT_NAME}-heimdallr --tail 10 -f | pino-pretty -c -t" C-m
         ;;
-        "arbitrum-one")    
+        "arbitrum-one")
             tmux rename-window -t 0 'nitro-log' && tmux send-keys -t 'nitro-log' "docker logs ${PROJECT_NAME}-nitro --tail 10 -f | pino-pretty -c -t" C-m
             tmux new-window -t ${PROJECT_NAME}:1 -n 'classic-log' && tmux send-keys -t 'classic-log' "docker logs ${PROJECT_NAME}-classic --tail 10 -f | pino-pretty -c -t" C-m
             tmux new-window -t ${PROJECT_NAME}:2 -n 'nitro-cli' && tmux send-keys -t 'nitro-cli' "docker exec -it ${PROJECT_NAME}-nitro /bin/bash" C-m
