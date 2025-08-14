@@ -157,8 +157,6 @@ node-start() { # 1. chain id 2. node name 3. env path
             "matic")
                 nets=$(docker container inspect --format '{{range $net,$v := .NetworkSettings.Networks}}{{printf "%s\n" $net}}{{end}}' ${PROJECT_NAME}-heimdalld)
                 [[ ! ${nets[@]} =~ "$MAINNET_LOCAL_NETWORK" ]] && docker network connect $MAINNET_LOCAL_NETWORK ${PROJECT_NAME}-heimdalld
-                nets=$(docker container inspect --format '{{range $net,$v := .NetworkSettings.Networks}}{{printf "%s\n" $net}}{{end}}' ${PROJECT_NAME}-heimdallr)
-                [[ ! ${nets[@]} =~ "$MAINNET_LOCAL_NETWORK" ]] && docker network connect $MAINNET_LOCAL_NETWORK ${PROJECT_NAME}-heimdallr
             ;;
             *)
                 nets=$(docker container inspect --format '{{range $net,$v := .NetworkSettings.Networks}}{{printf "%s\n" $net}}{{end}}' ${PROJECT_NAME})
