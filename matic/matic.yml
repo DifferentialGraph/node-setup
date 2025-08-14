@@ -61,8 +61,9 @@ services:
       - MATIC_RPC_URL=${COMPOSE_PROJECT_NAME}:8545
     ports:
       - 26656:26656 # P2P (TCP)
-    expose:
-      - 26657 # RPC (TCP)
+      - 127.0.0.1:26657:26657
+    # expose:
+    #   - 26657 # RPC (TCP)
     entrypoint: /root/.heimdall/heimdall-entrypoint.sh
     command:
       - start
