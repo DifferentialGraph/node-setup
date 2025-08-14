@@ -57,5 +57,4 @@ pprof.port: 6061
 
 snap.stop : true
 # bor.heimdall : https://polygon-heimdall-rest.publicnode.com
-bor.heimdall : http://localhost:26657
 # snap.keepblocks: true

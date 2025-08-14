@@ -61,7 +61,8 @@ services:
       - MATIC_RPC_URL=${COMPOSE_PROJECT_NAME}:8545
     ports:
       - 26656:26656 # P2P (TCP)
-      - 127.0.0.1:26657:26657
+      - 26657:26657
+      - 1317:1317 # Heimdall REST API
     # expose:
     #   - 26657 # RPC (TCP)
     entrypoint: /root/.heimdall/heimdall-entrypoint.sh
@@ -76,21 +77,21 @@ services:
     networks:
       - matic
 
-  heimdallr:
-    image: 0xpolygon/heimdall-v2:${HEIMDALL_TAG:-0.2.16}
-    container_name: ${COMPOSE_PROJECT_NAME}-heimdallr
-    restart: unless-stopped
-    volumes:
-      - ${HEIMDALL_PATH:-heimdall}:/root/.heimdall
-    ports:
-      - 127.0.0.1:1317:1317 # Heimdall REST API
-    depends_on:
-      - heimdalld
-    command:
-      - rest-server
-      - --laddr=tcp://0.0.0.0:1317
-      - --node=tcp://${COMPOSE_PROJECT_NAME}-heimdalld:26657
-      # - --max-open=1000
-      # - --trust-node=true
-    networks:
-      - matic
+  # heimdallr:
+  #   image: 0xpolygon/heimdall-v2:${HEIMDALL_TAG:-0.2.16}
+  #   container_name: ${COMPOSE_PROJECT_NAME}-heimdallr
+  #   restart: unless-stopped
+  #   volumes:
+  #     - ${HEIMDALL_PATH:-heimdall}:/root/.heimdall
+  #   ports:
+  #     - 127.0.0.1:1317:1317 # Heimdall REST API
+  #   depends_on:
+  #     - heimdalld
+  #   command:
+  #     - rest-server
+  #     - --laddr=tcp://0.0.0.0:1317
+  #     - --node=tcp://${COMPOSE_PROJECT_NAME}-heimdalld:26657
+  #     # - --max-open=1000
+  #     # - --trust-node=true
+  #   networks:
+  #     - matic
