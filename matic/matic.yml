@@ -51,7 +51,7 @@ services:
       LETSENCRYPT_HOST: ${SUBDOMAIN:-matic}.${HOST}
 
   heimdalld:
-    image: 0xpolygon/heimdall-v2:${HEIMDALL_TAG:-0.2.16}
+    image: 0xpolygon/heimdall-v2:${HEIMDALL_TAG:-0.2.17}
     container_name: ${COMPOSE_PROJECT_NAME}-heimdalld
     restart: unless-stopped
     volumes:
@@ -76,22 +76,3 @@ services:
       # - --with-tendermint=true
     networks:
       - matic
-
-  # heimdallr:
-  #   image: 0xpolygon/heimdall-v2:${HEIMDALL_TAG:-0.2.16}
-  #   container_name: ${COMPOSE_PROJECT_NAME}-heimdallr
-  #   restart: unless-stopped
-  #   volumes:
-  #     - ${HEIMDALL_PATH:-heimdall}:/root/.heimdall
-  #   ports:
-  #     - 127.0.0.1:1317:1317 # Heimdall REST API
-  #   depends_on:
-  #     - heimdalld
-  #   command:
-  #     - rest-server
-  #     - --laddr=tcp://0.0.0.0:1317
-  #     - --node=tcp://${COMPOSE_PROJECT_NAME}-heimdalld:26657
-  #     # - --max-open=1000
-  #     # - --trust-node=true
-  #   networks:
-  #     - matic
