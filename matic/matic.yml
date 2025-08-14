@@ -68,10 +68,10 @@ services:
       - start
       - --p2p.laddr=tcp://0.0.0.0:26656
       - --rpc.laddr=tcp://0.0.0.0:26657
-      - --fast_sync
-      - --p2p.upnp=false
-      - --pruning=syncable
-      - --with-tendermint=true
+      # - --fast_sync
+      # - --p2p.upnp=false
+      # - --pruning=syncable
+      # - --with-tendermint=true
     networks:
       - matic
 
@@ -85,11 +85,12 @@ services:
       - 127.0.0.1:1317:1317 # Heimdall REST API
     depends_on:
       - heimdalld
+    entrypoint: /root/.heimdall/heimdall-entrypoint.sh
     command:
       - rest-server
       - --laddr=tcp://0.0.0.0:1317
       - --node=tcp://${COMPOSE_PROJECT_NAME}-heimdalld:26657
-      - --max-open=1000
-      - --trust-node=true
+      # - --max-open=1000
+      # - --trust-node=true
     networks:
       - matic
