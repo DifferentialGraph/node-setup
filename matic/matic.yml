@@ -80,12 +80,11 @@ services:
     container_name: ${COMPOSE_PROJECT_NAME}-heimdallr
     restart: unless-stopped
     volumes:
-      - ${HEIMDALL_PATH:-heimdall}/heimdall
+      - ${HEIMDALL_PATH:-heimdall}:/root/.heimdall
     ports:
       - 127.0.0.1:1317:1317 # Heimdall REST API
     depends_on:
       - heimdalld
-    entrypoint: /root/.heimdall/heimdall-entrypoint.sh
     command:
       - rest-server
       - --laddr=tcp://0.0.0.0:1317
