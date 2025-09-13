@@ -15,7 +15,7 @@ networks:
 
 services:
   matic:
-    image: erigontech/erigon:${ERIGON_TAG:-v3.0.14}
+    image: erigontech/erigon:${ERIGON_TAG:-latest}
     container_name: ${COMPOSE_PROJECT_NAME}
     restart: unless-stopped
     stop_grace_period: 1m
@@ -51,7 +51,7 @@ services:
       LETSENCRYPT_HOST: ${SUBDOMAIN:-matic}.${HOST}
 
   heimdalld:
-    image: 0xpolygon/heimdall-v2:${HEIMDALL_TAG:-0.2.17}
+    image: 0xpolygon/heimdall-v2:${HEIMDALL_TAG:-latest}
     container_name: ${COMPOSE_PROJECT_NAME}-heimdalld
     restart: unless-stopped
     volumes:
