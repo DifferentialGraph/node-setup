@@ -67,7 +67,7 @@ services:
         condition: service_completed_successfully
     command:
       - --networkid=59144
-      - --gcmode='archive'
+      - --gcmode=archive
       - --syncmode=snap
       - --http
       - --http.addr=0.0.0.0
