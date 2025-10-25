@@ -119,11 +119,11 @@ node-start() { # 1. chain id 2. node name 3. env path
             [ -z $DATABASE_PATH ] && ! volume-exists ${PROJECT_NAME}_data && docker volume create ${PROJECT_NAME}_data
             [ -z $DATABASE_CL_PATH ] && ! volume-exists ${PROJECT_NAME}_maru-data && docker volume create ${PROJECT_NAME}_maru-data
             [ -z $CONFIG_PATH ] && mkdir ~/${PROJECT_NAME}-config && CONFIG_PATH=~/${PROJECT_NAME}-config
-            cp $NODEDIR/maru/log4j.xml ${CONFIG_PATH}/log4j.xml
-            cp $NODEDIR/maru/maru-genesis.json ${CONFIG_PATH}/maru-genesis.json
-            envsubst < $NODEDIR/maru/maru-config.toml > ${CONFIG_PATH}/maru-config.toml
-            cp $NODEDIR/genesis.json ${CONFIG_PATH}/genesis.json
-            cp $NODEDIR/engine-jwt ${CONFIG_PATH}/engine-jwt
+            cp $NODEDIR/linea/maru/log4j.xml ${CONFIG_PATH}/log4j.xml
+            cp $NODEDIR/linea/maru/maru-genesis.json ${CONFIG_PATH}/maru-genesis.json
+            envsubst < $NODEDIR/linea/maru/maru-config.toml > ${CONFIG_PATH}/maru-config.toml
+            cp $NODEDIR/linea/genesis.json ${CONFIG_PATH}/genesis.json
+            cp $NODEDIR/linea/engine-jwt ${CONFIG_PATH}/engine-jwt
             ;;
         "scroll")
             [ -z $DATABASE_PATH ] && ! volume-exists ${PROJECT_NAME}_data && docker volume create ${PROJECT_NAME}_data
