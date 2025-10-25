@@ -1,0 +1,147 @@
+networks:
+  optimism:
+    name: ${COMPOSE_PROJECT_NAME}
+
+volumes:
+  config:
+    external: true
+    name: ${COMPOSE_PROJECT_NAME}_config
+  scripts:
+    external: true
+    name: ${COMPOSE_PROJECT_NAME}_scripts
+  shared:
+    external: true
+    name: ${COMPOSE_PROJECT_NAME}_shared
+  downloads:
+    external: true
+    name: ${COMPOSE_PROJECT_NAME}_downloads
+  influxdb:
+    external: true
+    name: ${COMPOSE_PROJECT_NAME}_influxdb
+  l2geth:
+    external: true
+    name: ${COMPOSE_PROJECT_NAME}_l2geth
+  op-geth:
+    external: true
+    name: ${COMPOSE_PROJECT_NAME}_op-geth
+---
+x-logging-defaults: &logging-defaults
+  driver: json-file
+  options:
+    max-size: "10m"
+    max-file: "3"
+
+services:
+  execution:
+    image: ghcr.io/paradigmxyz/op-reth:v1.8.2
+    sysctls:
+      net.ipv4.tcp_slow_start_after_idle: 0       # Disable slow start after idle
+      net.ipv4.tcp_no_metrics_save: 1             # Disable metrics cache
+      net.ipv4.tcp_rmem: 4096 87380 16777216      # Increase TCP read buffers
+      net.ipv4.tcp_wmem: 4096 87380 16777216      # Increase TCP write buffers
+      net.core.somaxconn: 32768                   # Higher connection queue
+      # net.core.netdev_max_backlog: 50000        # Increase network buffer
+      net.ipv4.tcp_max_syn_backlog: 30000         # More SYN requests
+      net.ipv4.tcp_max_tw_buckets: 2000000        # Allow more TIME_WAIT sockets
+    ulimits:
+      nofile: 1048576    # Max open files (for RPC/WS connections)
+      memlock: -1        # Disable memory locking limits (for in-memory DBs like MDBX)
+    user: root
+    ports:
+      - 11114:11114
+      - 11114:11114/udp
+    expose:
+      - 8545
+      - 9001
+      - 8551
+    entrypoint: [op-reth, node]
+    command:
+      - --chain=optimism
+      - --config=/config/reth/reth.toml
+      - --datadir=/data
+      - --log.stdout.format json
+      - --engine.cross-block-cache-size=4096
+      - --max-inbound-peers=50
+      - --max-outbound-peers=50
+      - --metrics=0.0.0.0:9001
+      - --nat=extip:${IP}
+      # - --port=11114
+      - --port="$P2P_PORT" \
+      - --discovery.port="$DISCOVERY_PORT" \
+      - --rollup.historicalrpc=${OP_MAINNET_CLASSIC_ARCHIVE_RPC:-https://mainnet-sequencer.optimism.io}
+      # - --rollup.sequencer-http=https://mainnet-sequencer.optimism.io
+      # - --rollup.disable-tx-pool-gossip \
+      - --rollup.sequencer-http=$RETH_SEQUENCER_HTTP
+      - --rpc-cache.max-blocks=10000
+      - --rpc-cache.max-concurrent-db-requests=2048
+      - --rpc.gascap=600000000
+      - --rpc.max-blocks-per-filter=0
+      - --rpc.max-connections=50000
+      - --rpc.max-logs-per-response=0
+      - --http
+      - --http.addr=0.0.0.0
+      - --http.api=admin,debug,eth,net,trace,txpool,web3,rpc,reth,ots,flashbots,mev
+      - --http.corsdomain=*
+      - --http.port=8545
+      - --ws
+      - --ws.addr=0.0.0.0
+      - --ws.api=admin,debug,eth,net,trace,txpool,web3,rpc,reth,ots,flashbots,mev
+      - --ws.origins=*
+      - --ws.port=8545
+      - --authrpc.addr=0.0.0.0
+      # - --authrpc.jwtsecret=/jwtsecret
+      - --authrpc.jwtsecret="$OP_NODE_L2_ENGINE_AUTH"
+      - --authrpc.port="$AUTHRPC_PORT"
+
+    restart: unless-stopped
+    stop_grace_period: 5m
+    networks:
+      - chains
+    volumes:
+      - ${OP_MAINNET_OP_RETH_ARCHIVE_TRACE_DATA:-op-mainnet-op-reth-archive-trace}:/root/.local/share/reth
+      - ./op/op/mainnet:/config
+      - .jwtsecret:/jwtsecret:ro
+      - /slowdisk:/slowdisk
+    shm_size: 2gb
+
+  node:
+    image: us-docker.pkg.dev/oplabs-tools-artifacts/images/op-node}:v1.13.6
+    ports:
+      - 16114:16114
+      - 16114:16114/udp
+    environment:
+      - OP_NODE_L1_BEACON=${ETHEREUM_MAINNET_BEACON_REST}
+      - OP_NODE_L1_BEACON_ARCHIVER=${ETHEREUM_MAINNET_BEACON_ARCHIVER}
+      - OP_NODE_L1_ETH_RPC=${ETHEREUM_MAINNET_EXECUTION_RPC}
+      - OP_NODE_L1_RPC_KIND=${OP_NODE_L1_RPC_KIND}
+      - OP_NODE_L1_TRUST_RPC=${ETHEREUM_MAINNET_EXECUTION_TRUST:-false}
+      - OP_NODE_L2_ENGINE_AUTH=/jwtsecret
+      - OP_NODE_L2_ENGINE_KIND=reth
+      - OP_NODE_L2_ENGINE_RPC=http://op-mainnet-op-reth:8551
+      - OP_NODE_L2_SKIP_SYNC_START_CHECK=true
+      - OP_NODE_LOG_LEVEL=info
+      - OP_NODE_METRICS_ADDR=0.0.0.0
+      - OP_NODE_METRICS_ENABLED=true
+      - OP_NODE_METRICS_PORT=7300
+      - OP_NODE_METRIC_ENABLED=true
+      - OP_NODE_NETWORK=op-mainnet
+      - OP_NODE_P2P_ADVERTISE_IP=${IP}
+      - OP_NODE_P2P_LISTEN_IP=0.0.0.0
+      - OP_NODE_P2P_LISTEN_TCP_PORT=16114
+      - OP_NODE_P2P_LISTEN_UDP_PORT=16114
+      - OP_NODE_ROLLUP_LOAD_PROTOCOL_VERSIONS=true
+      - OP_NODE_RPC_ADDR=0.0.0.0
+      - OP_NODE_RPC_PORT=8545
+      - OP_NODE_SNAPSHOT_LOG=/tmp/op-node-snapshot-log
+      - OP_NODE_SYNCMODE=execution-layer
+      - OP_NODE_VERIFIER_L1_CONFS=0
+    entrypoint: [op-node]
+    restart: unless-stopped
+    depends_on:
+      - execution
+    networks:
+      - chains
+    volumes:
+      - ./op/op/mainnet:/config
+      - .jwtsecret:/jwtsecret:ro
+    logging: *logging-defaults
