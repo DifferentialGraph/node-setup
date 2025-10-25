@@ -41,6 +41,9 @@ services:
         - "/opt/consensys/maru/configs/maru-genesis.json"
         - "--config"
         - "/opt/consensys/maru/configs/maru-config.toml"
+      networks:
+        - linea
+
   geth-init:
     profiles: ["geth"]
     image: ethereum/client-go:${GETH_TAG:-v1.13.15} # v1.16.5
