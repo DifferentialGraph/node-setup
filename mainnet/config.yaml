@@ -29,16 +29,19 @@ http.port: 8545
 http.addr: 0.0.0.0
 http.vhosts: "*"
 http.corsdomain: "*"
-http.api: [eth, erigon, web3, debug, net, trace, txpool]
-# http.compression : true 
+http.api: [eth, erigon, web3, debug, net, trace, txpool, admin, ots]
+# http.compression : true
 
 ws: true
 # ws.port: 8546
 # ws.compression: true
 
-rpc.returndata.limit: 1100000
 # rpc.accessList : rules.json
-rpc.gascap: 5000000000
+rpc.evmtimeout: '5m0s'
+rpc.gascap: 6000000000
+rpc.overlay.getlogstimeout: '5m0s'
+rpc.overlay.replayblocktimeout: '10s'
+rpc.returndata.limit: 10000000
 
 # metric
 metrics : false
@@ -47,12 +50,15 @@ metrics.port: 6060
 
 # pprof
 pprof: false
-pprof.addr: 0.0.0.0 
+pprof.addr: 0.0.0.0
 pprof.port: 6061
 
 # beacon api
 externalcl: false
 
+#caplin.discovery.addr: 0.0.0.0
+#caplin.discovery.port: 16675
+#caplin.discovery.tcpport: 16675
 caplin.states-archive: true
 caplin.blobs-archive: true
 caplin.blocks-archive: true
@@ -63,7 +69,7 @@ beacon.api: [beacon, builder, config, debug, node, validator, lighthouse]
 beacon.api.port: 5555
 beacon.api.addr: 0.0.0.0
 beacon.api.cors.allow-origins: "*"
-beacon.api.cors.allow-credentials: true
+# beacon.api.cors.allow-credentials: true
 
 nat: stun
 
