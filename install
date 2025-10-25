@@ -48,6 +48,7 @@ node-start() { # 1. chain id 2. node name 3. env path
     [ -z "$1" ] && { echo "Error: provide chain id"; return 1; }
     [ -f "$NODEDIR/$1/$1.yml" ] || { echo "Error: $1.yml file not found."; return 1; }
     PROJECT_NAME="${2:-$1}"
+    export PROJECT_NAME
     ENV_FILE="${3:-$NODEDIR/$1/${PROJECT_NAME}}"
     [ -f "$ENV_FILE.env" ] || { echo "Error: $ENV_FILE.env file not found"; return 1; }
     source $ENV_FILE.env
@@ -116,6 +117,13 @@ node-start() { # 1. chain id 2. node name 3. env path
             ;;
         "linea")
             [ -z $DATABASE_PATH ] && ! volume-exists ${PROJECT_NAME}_data && docker volume create ${PROJECT_NAME}_data
+            [ -z $DATABASE_CL_PATH ] && ! volume-exists ${PROJECT_NAME}_maru-data && docker volume create ${PROJECT_NAME}_maru-data
+            [ -z $CONFIG_PATH ] && mkdir ~/${PROJECT_NAME}-config && CONFIG_PATH=~/${PROJECT_NAME}-config
+            cp $NODEDIR/maru/log4j.xml ${CONFIG_PATH}/log4j.xml
+            cp $NODEDIR/maru/maru-genesis.json ${CONFIG_PATH}/maru-genesis.json
+            envsubst < $NODEDIR/maru/maru-config.toml > ${CONFIG_PATH}/maru-config.toml
+            cp $NODEDIR/genesis.json ${CONFIG_PATH}/genesis.json
+            cp $NODEDIR/engine-jwt ${CONFIG_PATH}/engine-jwt
             ;;
         "scroll")
             [ -z $DATABASE_PATH ] && ! volume-exists ${PROJECT_NAME}_data && docker volume create ${PROJECT_NAME}_data
@@ -199,6 +207,7 @@ node-start() { # 1. chain id 2. node name 3. env path
         fi
     fi
     # unset HOST SUBDOMAIN WHITELIST DATABASE_PATH MAINNET_LOCAL_NETWORK
+    unset PROJECT_NAME
 }
 
 node-install() {

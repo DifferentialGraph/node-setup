@@ -64,6 +64,8 @@ node-monitor() {
         "linea")
             tmux rename-window -t 0 'linea-log' && tmux send-keys -t 'linea-log' "docker logs ${PROJECT_NAME} --tail 10 -f | pino-pretty -c -t" C-m
             tmux new-window -t ${PROJECT_NAME}:1 -n 'linea-cli' && tmux send-keys -t 'linea-cli' "docker exec -it ${PROJECT_NAME} sh" C-m
+            tmux new-window -t ${PROJECT_NAME}:2 -n 'maru-log' && tmux send-keys -t 'maru-log' "docker logs ${PROJECT_NAME}-maru --tail 10 -f | pino-pretty -c -t" C-m
+            tmux new-window -t ${PROJECT_NAME}:3 -n 'maru-cli' && tmux send-keys -t 'maru-cli' "docker exec -it ${PROJECT_NAME}-maru sh" C-m
         ;;
         "base")
             tmux rename-window -t 0 'base-execution-log' && tmux send-keys -t 'base-execution-log' "docker logs ${PROJECT_NAME}-execution --tail 10 -f | pino-pretty -c -t" C-m
