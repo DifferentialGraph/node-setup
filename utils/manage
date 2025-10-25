@@ -10,6 +10,7 @@ node-stop() { # 1. chain id 2. node name 3. env path
 
     COMPOSE_PROJECT_NAME=${PROJECT_NAME} \
     COMPOSE_FILE=$NODEDIR/$1/$1.yml \
+    COMPOSE_PROFILES=${CLIENT:-"geth"} \
     docker compose --env-file "$ENV_FILE.env" stop
 }
 
