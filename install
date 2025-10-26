@@ -116,7 +116,7 @@ node-start() { # 1. chain id 2. node name 3. env path
             # rm -rf $SNAP_LATEST
             ;;
         "linea")
-            [-z $CLIENT ] && CLIENT="geth"
+            [ -z $CLIENT ] && CLIENT="geth"
 
             [ -z $DATABASE_PATH ] && ! volume-exists ${PROJECT_NAME}_data && docker volume create ${PROJECT_NAME}_data
             [ -z $DATABASE_CL_PATH ] && ! volume-exists ${PROJECT_NAME}_maru-data && docker volume create ${PROJECT_NAME}_maru-data
