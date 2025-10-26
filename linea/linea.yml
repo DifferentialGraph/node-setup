@@ -28,9 +28,9 @@ services:
       environment:
         - JAVA_OPTS=-Xmx2g
       volumes:
-        - ${CONFIG_PATH}/maru-config.toml:/opt/consensys/maru/configs/maru-config.toml:ro
-        - ${CONFIG_PATH}/maru-genesis.json:/opt/consensys/maru/configs/maru-genesis.json:ro
-        - ${CONFIG_PATH}/log4j.xml:/opt/consensys/maru/configs/log4j.xml:ro
+        - ${CONFIG_PATH}/maru/maru-config.toml:/opt/consensys/maru/configs/maru-config.toml:ro
+        - ${CONFIG_PATH}/maru/maru-genesis.json:/opt/consensys/maru/configs/maru-genesis.json:ro
+        - ${CONFIG_PATH}/maru/log4j.xml:/opt/consensys/maru/configs/log4j.xml:ro
         - ${CONFIG_PATH}/engine-jwt:/opt/consensys/maru/configs/jwt:ro
         - ${DATABASE_CL_PATH:-maru-data}:/opt/maru
       command:
@@ -53,7 +53,7 @@ services:
       - init
       - /genesis.json
     volumes:
-      - ./genesis.json:/genesis.json:ro
+      - ${CONFIG_PATH}/geth/geth-genesis.json:/genesis.json:ro
       - ${DATABASE_PATH:-data}:/root/.ethereum
     networks:
       - linea
@@ -99,7 +99,7 @@ services:
       - 8546
       - 8550
     volumes:
-      - ${CONFIG_PATH}/genesis.json:/genesis.json:ro
+      - ${CONFIG_PATH}/geth/geth-genesis.json:/genesis.json:ro
       - ${CONFIG_PATH}/engine-jwt:/root/.ethereum/jwt:ro
       - ${DATABASE_PATH:-data}:/root/.ethereum
     environment:

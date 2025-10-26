@@ -116,13 +116,19 @@ node-start() { # 1. chain id 2. node name 3. env path
             # rm -rf $SNAP_LATEST
             ;;
         "linea")
+            [-z $CLIENT ] && CLIENT="geth"
+
             [ -z $DATABASE_PATH ] && ! volume-exists ${PROJECT_NAME}_data && docker volume create ${PROJECT_NAME}_data
             [ -z $DATABASE_CL_PATH ] && ! volume-exists ${PROJECT_NAME}_maru-data && docker volume create ${PROJECT_NAME}_maru-data
             [ -z $CONFIG_PATH ] && mkdir ~/${PROJECT_NAME}-config && CONFIG_PATH=~/${PROJECT_NAME}-config
-            cp $NODEDIR/linea/maru/log4j.xml ${CONFIG_PATH}/log4j.xml
-            cp $NODEDIR/linea/maru/maru-genesis.json ${CONFIG_PATH}/maru-genesis.json
-            envsubst < $NODEDIR/linea/maru/maru-config.toml > ${CONFIG_PATH}/maru-config.toml
-            cp $NODEDIR/linea/genesis.json ${CONFIG_PATH}/genesis.json
+
+            [ -d "${CONFIG_PATH}/${CLIENT}" ] || mkdir "${CONFIG_PATH}/${CLIENT}"
+            [ -d "${CONFIG_PATH}/maru" ] || mkdir "${CONFIG_PATH}/maru"
+
+            cp $NODEDIR/linea/maru/log4j.xml ${CONFIG_PATH}/maru/log4j.xml
+            cp $NODEDIR/linea/maru/maru-genesis.json ${CONFIG_PATH}/maru/maru-genesis.json
+            envsubst < $NODEDIR/linea/maru/maru-config.toml > ${CONFIG_PATH}/maru/maru-config.toml
+            cp $NODEDIR/linea/${CLIENT}/${CLIENT}-genesis.json ${CONFIG_PATH}/${CLIENT}/${CLIENT}-genesis.json
             cp $NODEDIR/linea/engine-jwt ${CONFIG_PATH}/engine-jwt
             ;;
         "scroll")
@@ -136,12 +142,12 @@ node-start() { # 1. chain id 2. node name 3. env path
 
     COMPOSE_PROJECT_NAME=${PROJECT_NAME} \
     COMPOSE_FILE=$NODEDIR/$1/$1.yml \
-    COMPOSE_PROFILES=${CLIENT:-"geth"} \
+    COMPOSE_PROFILES=${CLIENT} \
     docker compose --env-file $ENV_FILE.env pull
 
     COMPOSE_PROJECT_NAME=${PROJECT_NAME} \
     COMPOSE_FILE=$NODEDIR/$1/$1.yml \
-    COMPOSE_PROFILES=${CLIENT:-"geth"} \
+    COMPOSE_PROFILES=${CLIENT} \
     docker compose --env-file $ENV_FILE.env up -d --remove-orphans --build
 
     if [ ! -z $MAINNET_LOCAL_NETWORK ]; then
