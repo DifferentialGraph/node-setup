@@ -88,3 +88,49 @@ services:
       # - --with-tendermint=true
     networks:
       - matic
+
+  prometheus:
+    image: prom/prometheus:v2.51.2
+    container_name: ${COMPOSE_PROJECT_NAME}-prometheus
+    user: ${ERIGON_UID:-1000}:${ERIGON_GID:-1000}
+    command: 
+      - '--log.level=warn' 
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--storage.tsdb.retention.time=150d'
+      - '--web.console.libraries=/usr/share/prometheus/console_libraries'
+      - '--web.console.templates=/usr/share/prometheus/consoles'
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    expose:
+      - 9090
+    volumes:
+      - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
+      - prometheus-data:/prometheus
+    restart: unless-stopped
+    networks:
+      - matic
+
+  grafana:
+    image: grafana/grafana:10.4.2
+    container_name: ${COMPOSE_PROJECT_NAME}-grafana
+    user: "472:0"
+    expose:
+      - 3000
+    volumes:
+      - ./grafana/grafana.ini:/etc/grafana/grafana.ini
+      - ./grafana/datasources:/etc/grafana/provisioning/datasources
+      - ./grafana/dashboards:/etc/grafana/provisioning/dashboards
+      - grafana-data:/var/lib/grafana
+    environment:
+      GF_SECURITY_ADMIN_USER: ${GRAFANA_USER}
+      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_PASS}
+      GF_USERS_ALLOW_SIGN_UP: false
+      GF_SECURITY_DISABLE_BRUTE_FORCE_LOGIN_PROTECTION: true
+      PROMETHEUS_HOST: ${COMPOSE_PROJECT_NAME}-prometheus
+      VIRTUAL_HOST: ${SUBDOMAIN:-matic}-dashboard.${HOST}
+      VIRTUAL_PORT: 3000
+      LETSENCRYPT_HOST: ${SUBDOMAIN:-matic}-dashboard.${HOST}
+    restart: unless-stopped
+    networks:
+      - matic
