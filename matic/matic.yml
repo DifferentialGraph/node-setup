@@ -8,6 +8,10 @@ volumes:
   heimdall:
     external: true
     name: ${COMPOSE_PROJECT_NAME}_heimdall
+  prometheus-data:
+    name: ${COMPOSE_PROJECT_NAME}_prometheus
+  grafana-data:
+    name: ${COMPOSE_PROJECT_NAME}_grafana
 
 networks:
   matic:
