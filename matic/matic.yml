@@ -15,7 +15,7 @@ networks:
 
 services:
   matic:
-    image: erigontech/erigon:${ERIGON_TAG:-latest}
+    image: 0xpolygon/erigon:${ERIGON_TAG:-latest}
     container_name: ${COMPOSE_PROJECT_NAME}
     sysctls:
       net.ipv4.tcp_slow_start_after_idle: 0
