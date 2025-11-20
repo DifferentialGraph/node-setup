@@ -48,7 +48,7 @@ rpc.overlay.replayblocktimeout: "10s"
 rpc.returndata.limit: 10000000
 
 # metric
-metrics : false
+metrics : true
 metrics.addr: 0.0.0.0
 metrics.port: 6060
 
