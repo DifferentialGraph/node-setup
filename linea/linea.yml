@@ -17,7 +17,7 @@ services:
   maru-node:
       # hostname: linea-maru
       container_name: ${COMPOSE_PROJECT_NAME}-maru
-      image: consensys/maru:bcfdb43
+      image: consensys/maru:3305fe0
       restart: unless-stopped
       ports:
         - "9000:9000/tcp" # P2P main port
