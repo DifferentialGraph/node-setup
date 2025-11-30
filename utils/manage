@@ -85,7 +85,7 @@ node-monitor() {
         "opstack")
             tmux rename-window -t 0 'op-exec' && tmux send-keys -t 'op-exec' "docker logs ${PROJECT_NAME}-op-exec --tail 10 -f | pino-pretty -c -t" C-m
             tmux new-window -t ${PROJECT_NAME}:1 -n 'op-node' && tmux send-keys -t 'op-node' "docker logs ${PROJECT_NAME}-op-node --tail 10 -f | pino-pretty -c -t" C-m
-            #tmux new-window -t ${PROJECT_NAME}:2 -n 'bedrock-init' && tmux send-keys -t 'bedrock-init' "docker logs ${PROJECT_NAME}-bedrock-init --tail 10 -f | pino-pretty -c -t" C-m
+            tmux new-window -t ${PROJECT_NAME}:2 -n 'bedrock' && tmux send-keys -t 'bedrock' "docker logs ${PROJECT_NAME}-bedrock --tail 10 -f | pino-pretty -c -t" C-m
             #tmux new-window -t ${PROJECT_NAME}:3 -n 'l2geth' && tmux send-keys -t 'l2geth' "docker logs ${PROJECT_NAME}-l2geth --tail 10 -f | pino-pretty -c -t" C-m
         ;;
         *)
