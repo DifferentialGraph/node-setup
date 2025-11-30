@@ -1,47 +1,36 @@
+volumes:
+  data:
+    external: true
+    name: ${COMPOSE_PROJECT_NAME}_data
+  script:
+    external: true
+    name: ${COMPOSE_PROJECT_NAME}_scripts
+
 networks:
   opstack:
     name: ${COMPOSE_PROJECT_NAME}
-
-volumes:
-  config:
-    external: true
-    name: ${COMPOSE_PROJECT_NAME}_config
-  scripts:
-    external: true
-    name: ${COMPOSE_PROJECT_NAME}_scripts
-  shared:
-    external: true
-    name: ${COMPOSE_PROJECT_NAME}_shared
-  downloads:
-    external: true
-    name: ${COMPOSE_PROJECT_NAME}_downloads
-  influxdb:
-    external: true
-    name: ${COMPOSE_PROJECT_NAME}_influxdb
-  l2geth:
-    external: true
-    name: ${COMPOSE_PROJECT_NAME}_l2geth
-  op-geth:
-    external: true
-    name: ${COMPOSE_PROJECT_NAME}_op-geth
 
 services:
   op-node:
     image: us-docker.pkg.dev/oplabs-tools-artifacts/images/op-node:${OP_NODE_TAG:-latest}
     container_name: ${COMPOSE_PROJECT_NAME}-op-node
     ports:
-      - 16114:16114
-      - 16114:16114/udp
+      - 9222:9222     # P2P TCP
+      - 9222:9222/udp # P2P UDP
+    expose:
+      - 8545     # RPC
+      - 7300     # metrics
+      - 6060     # pprof
     environment:
       - OP_NODE_SYNCMODE=execution-layer
       - OP_NODE_VERIFIER_L1_CONFS=4
       - OP_NODE_ROLLUP_LOAD_PROTOCOL_VERSIONS=true
-      - OP_NODE_L1_ETH_RPC=${OP_NODE_L1_ETH_RPC}
-      - OP_NODE_L1_BEACON=${OP_NODE_L1_BEACON}
-      - OP_NODE_L1_BEACON_ARCHIVER=${OP_NODE_L1_BEACON_ARCHIVER}
+      - OP_NODE_L1_ETH_RPC=${L1_RPC_EXECUTION}
+      - OP_NODE_L1_BEACON=${L1_RPC_CONSENSUS}
+      - OP_NODE_L1_BEACON_ARCHIVER=${L1_RPC_CONSENSUS}
       - OP_NODE_L1_BEACON_FETCH_ALL_SIDECARS="true"
-      - OP_NODE_L1_RPC_KIND=${OP_NODE_L1_RPC_KIND}
-      - OP_NODE_L1_TRUST_RPC=${OP_NODE_L1_TRUST_RPC}
+      - OP_NODE_L1_RPC_KIND=${L1_RPC_KIND:-debug_geth}
+      - OP_NODE_L1_TRUST_RPC=${L1_RPC_TRUST:-false}
       - OP_NODE_L2_ENGINE_KIND=${CLIENT}
       - OP_NODE_L2_ENGINE_RPC=http://${COMPOSE_PROJECT_NAME}-op-${CLIENT}:8551 # ws://${COMPOSE_PROJECT_NAME}-op-${CLIENT}:8551
       - OP_NODE_L2_ENGINE_AUTH=/tmp/engine-auth-jwt
@@ -54,24 +43,23 @@ services:
       - OP_NODE_METRICS_PORT=7300
       - OP_NODE_RPC_ADDR=0.0.0.0
       - OP_NODE_RPC_PORT=8545
-      - OP_NODE_NETWORK=${OP_NODE_NETWORK}
       - OP_NODE_P2P_AGENT=${CHAIN}
       - OP_NODE_P2P_LISTEN_IP=0.0.0.0
       - OP_NODE_P2P_LISTEN_TCP_PORT=9222
       - OP_NODE_P2P_LISTEN_UDP_PORT=9222
       - OP_NODE_INTERNAL_IP="true"
       # - OP_NODE_P2P_BOOTNODES=enr:-J24QNz9lbrKbN4iSmmjtnr7SjUMk4zB7f1krHZcTZx-JRKZd0kA2gjufUROD6T3sOWDVDnFJRvqBBo62zuF-hYCohOGAYiOoEyEgmlkgnY0gmlwhAPniryHb3BzdGFja4OFQgCJc2VjcDI1NmsxoQKNVFlCxh_B-716tTs-h1vMzZkSs1FTu_OYTNjgufplG4N0Y3CCJAaDdWRwgiQG,enr:-J24QH-f1wt99sfpHy4c0QJM-NfmsIfmlLAMMcgZCUEgKG_BBYFc6FwYgaMJMQN5dsRBJApIok0jFn-9CS842lGpLmqGAYiOoDRAgmlkgnY0gmlwhLhIgb2Hb3BzdGFja4OFQgCJc2VjcDI1NmsxoQJ9FTIv8B9myn1MWaC_2lJ-sMoeCDkusCsk4BYHjjCq04N0Y3CCJAaDdWRwgiQG,enr:-J24QDXyyxvQYsd0yfsN0cRr1lZ1N11zGTplMNlW4xNEc7LkPXh0NAJ9iSOVdRO95GPYAIc6xmyoCCG6_0JxdL3a0zaGAYiOoAjFgmlkgnY0gmlwhAPckbGHb3BzdGFja4OFQgCJc2VjcDI1NmsxoQJwoS7tzwxqXSyFL7g0JM-KWVbgvjfB8JA__T7yY_cYboN0Y3CCJAaDdWRwgiQG,enr:-J24QHmGyBwUZXIcsGYMaUqGGSl4CFdx9Tozu-vQCn5bHIQbR7On7dZbU61vYvfrJr30t0iahSqhc64J46MnUO2JvQaGAYiOoCKKgmlkgnY0gmlwhAPnCzSHb3BzdGFja4OFQgCJc2VjcDI1NmsxoQINc4fSijfbNIiGhcgvwjsjxVFJHUstK9L1T8OTKUjgloN0Y3CCJAaDdWRwgiQG,enr:-J24QG3ypT4xSu0gjb5PABCmVxZqBjVw9ca7pvsI8jl4KATYAnxBmfkaIuEqy9sKvDHKuNCsy57WwK9wTt2aQgcaDDyGAYiOoGAXgmlkgnY0gmlwhDbGmZaHb3BzdGFja4OFQgCJc2VjcDI1NmsxoQIeAK_--tcLEiu7HvoUlbV52MspE0uCocsx1f_rYvRenIN0Y3CCJAaDdWRwgiQG
-    entrypoint: [op-node]
+    entrypoint: /scripts/op-reth.sh
     restart: unless-stopped
     networks:
       - opstack
     volumes:
-      - ./op/op/mainnet:/config
-      - .jwtsecret:/jwtsecret:ro
+      - ${DATABASE_PATH:-data}:/data
+      - ${SCRIPTS_PATH:-scripts}:/scripts
 
   op-reth:
     profiles: ["reth"]
-    image: ghcr.io/paradigmxyz/op-reth:${OP_RETH_TAG:-v1.8.2}
+    image: ghcr.io/paradigmxyz/op-reth:${OP_RETH_TAG:-latest}
     container_name: ${COMPOSE_PROJECT_NAME}-op-reth
     sysctls:
       net.ipv4.tcp_slow_start_after_idle: 0       # Disable slow start after idle
@@ -87,16 +75,17 @@ services:
       memlock: -1        # Disable memory locking limits (for in-memory DBs like MDBX)
     user: root
     ports:
-      - 11114:11114
-      - 11114:11114/udp
+      - ${PORT_P2P:-30333}:30303           # P2P TCP
+      - ${PORT_P2P:-30333}:30303/udp       # P2P UDP
     expose:
-      - 8545
-      - 9001
+      - 8545       # http
+      - 8546       # websocket
+      - 6060       # metrics
       - 8551
-    entrypoint: [op-reth, node]
+    entrypoint: /scripts/op-reth.sh
     command:
       - --datadir=/data
-      - --log.stdout.format json
+      - --log.stdout.format=json
       - --ws
       - --ws.origins="*"
       - --ws.addr=0.0.0.0
@@ -110,11 +99,11 @@ services:
       - --ipcpath="/data/reth.ipc"
       - --authrpc.addr=0.0.0.0
       - --authrpc.port="${AUTHRPC_PORT:-8551}"
-      - --authrpc.jwtsecret="$OP_NODE_L2_ENGINE_AUTH"
+      - --authrpc.jwtsecret=/tmp/engine-auth-jwt
       - --metrics=0.0.0.0:"${METRICS_PORT:-6060}"
       - --max-outbound-peers=100
-      - --chain "$CHAIN"
-      - --rollup.sequencer-http=https://mainnet-sequencer.optimism.io # https://mainnet-sequencer.base.org
+      - --chain="${CHAIN}"
+      - --rollup.sequencer-http=${OP_SEQUENCER_HTTP}
       - --rollup.disable-tx-pool-gossip
       - --discovery.port="${DISCOVERY_PORT:-30303}"
       - --port="${P2P_PORT:-30303}"
@@ -136,91 +125,6 @@ services:
     networks:
       - opstack
     volumes:
-      - ${OP_MAINNET_OP_RETH_ARCHIVE_TRACE_DATA:-op-mainnet-op-reth-archive-trace}:/root/.local/share/reth
-      - ./op/op/mainnet:/config
-      - .jwtsecret:/jwtsecret:ro
-      - /slowdisk:/slowdisk
-    shm_size: 2gb
-
-  op-geth:
-      profiles: ["geth"]
-      image: us-docker.pkg.dev/oplabs-tools-artifacts/images/op-geth:${OP_GETH_TAG:-v1.101603.1}
-      container_name: ${COMPOSE_PROJECT_NAME}-op-geth
-      restart: unless-stopped
-      stop_grace_period: 5m
-      entrypoint: /scripts/start-op-geth.sh
-      env_file:
-        - ./envs/${NETWORK_NAME}/op-geth.env
-        - .env
-      volumes:
-        - ./envs/${NETWORK_NAME}/config:/chainconfig
-        - ./scripts/:/scripts
-        - shared:/shared
-        - op_geth:/geth
-        - ./.upgrade-pectra:/upgrade-pectra
-      ports:
-        - ${PORT__OP_GETH_HTTP:-9993}:8545
-        - ${PORT__OP_GETH_WS:-9994}:8546
-        - ${PORT__OP_GETH_P2P:-39393}:${PORT__OP_GETH_P2P:-39393}/udp
-        - ${PORT__OP_GETH_P2P:-39393}:${PORT__OP_GETH_P2P:-39393}/tcp
-      extra_hosts:
-        - "host.docker.internal:host-gateway"
-
-  l2geth:
-    profiles: ["optimism"]
-    image: ethereumoptimism/l2geth:${L2GETH_TAG:-latest}
-    container_name: ${COMPOSE_PROJECT_NAME}-l2geth
-    restart: on-failure
-    stop_grace_period: 5m
-    entrypoint: 
-      - /bin/sh
-      - -c
-      - "/scripts/init-l2geth.sh && /scripts/start-l2geth.sh"
-    env_file:
-      - optimism.env
-      - ./envs/l2geth.env
-    volumes:
-      - ${L2GETH_DATABASE_PATH:-l2geth}:/geth
-      - ${SCRIPTS_PATH:-scripts}:/scripts/
-    expose:
-      - 8545 # http
-      - 8546 # ws
-    networks:
-      - optimism
-
-  bedrock-init:
-    profiles: ["optimism"]
-    build:
-      context: ./dockerfiles
-      dockerfile: Dockerfile.bedrock-init
-    container_name: ${COMPOSE_PROJECT_NAME}-bedrock-init
-    entrypoint: /scripts/init-bedrock.sh
-    env_file:
-      - optimism.env
-      - ./envs/op-geth.env
-    volumes:
+      - ${DATABASE_PATH:-data}:/data
       - ${SCRIPTS_PATH:-scripts}:/scripts
-      - ${SHARED_PATH:-shared}:/shared
-      - ${OPGETH_DATABASE_PATH:-op-geth}:/geth
-      - ${L2GETH_DATABASE_PATH:-l2geth}:/legacy-geth
-      - ${DOWNLOADS_PATH:-downloads}:/downloads
-    networks:
-      - optimism
-
-  influxdb:
-    profiles: ["optimism"]
-    image: influxdb:${INFLUXDB_TAG:-1.8}
-    container_name: ${COMPOSE_PROJECT_NAME}-influxdb
-    restart: unless-stopped
-    env_file:
-      - optimism.env
-      - ./envs/influxdb.env
-    volumes:
-      - ${SCRIPTS_PATH:-scripts}/influx_init.iql:/docker-entrypoint-initdb.d/influx_init.iql
-      - ${INFLUXDB_PATH:-influxdb}:/var/lib/influxdb
-    # ports:
-    #   - 8086:8086
-    expose:
-      - 8086
-    networks:
-      - optimism
+    shm_size: 2gb

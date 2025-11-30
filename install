@@ -133,6 +133,13 @@ node-start() { # 1. chain id 2. node name 3. env path
             ;;
         "scroll")
             [ -z $DATABASE_PATH ] && ! volume-exists ${PROJECT_NAME}_data && docker volume create ${PROJECT_NAME}_data
+        "opstack")
+            [ -z $SCRIPTS_PATH ] && ! volume-exists ${PROJECT_NAME}_scripts && docker volume create ${PROJECT_NAME}_scripts
+            cp $NODEDIR/opstack/scripts/* ${SCRIPTS_PATH:-/var/lib/docker/volumes/${PROJECT_NAME}_config/_data}
+
+            [ -z $DATABASE_PATH ] && ! volume-exists ${PROJECT_NAME}_data && docker volume create ${PROJECT_NAME}_data
+
+            PROFILES=($CHAIN $CLIENT)
             ;;
         *)
             echo "Chain not supported yet!"
@@ -142,12 +149,12 @@ node-start() { # 1. chain id 2. node name 3. env path
 
     COMPOSE_PROJECT_NAME=${PROJECT_NAME} \
     COMPOSE_FILE=$NODEDIR/$1/$1.yml \
-    COMPOSE_PROFILES=${CLIENT} \
+    COMPOSE_PROFILES="$(IFS=,; echo "${PROFILES[*]}")" \
     docker compose --env-file $ENV_FILE.env pull
 
     COMPOSE_PROJECT_NAME=${PROJECT_NAME} \
     COMPOSE_FILE=$NODEDIR/$1/$1.yml \
-    COMPOSE_PROFILES=${CLIENT} \
+    COMPOSE_PROFILES="$(IFS=,; echo "${PROFILES[*]}")" \
     docker compose --env-file $ENV_FILE.env up -d --remove-orphans --build
 
     if [ ! -z $MAINNET_LOCAL_NETWORK ]; then
