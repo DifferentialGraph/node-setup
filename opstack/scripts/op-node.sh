@@ -6,13 +6,13 @@ ADDITIONAL_ARGS=""
 if [ $OPSTACK_CHAIN == "optimism" ]; then
     export OP_NODE_NETWORK=op-mainnet
 
-    ## Wait for the Bedrock flag for this network to be set.
-    #echo "Waiting for Bedrock node to initialize..."
-    #while [ ! -f /shared/initialized.txt ]; do
-    #  sleep 1
-    #done
+    # Wait for the Bedrock flag for this network to be set.
+    echo "Waiting for Bedrock node to initialize..."
+    while [ ! -f /shared/initialized.txt ]; do
+     sleep 1
+    done
 
-    #export ADDITIONAL_ARGS="${ADDITIONAL_ARGS:-} --rollup.load-protocol-versions=true --rollup.halt=major"
+    export ADDITIONAL_ARGS="${ADDITIONAL_ARGS:-} --rollup.load-protocol-versions=true --rollup.halt=major"
 elif [ $OPSTACK_CHAIN == "base" ]; then
     export OP_NODE_NETWORK=base-mainnet
 

@@ -5,6 +5,7 @@ volumes:
   scripts:
     external: true
     name: ${COMPOSE_PROJECT_NAME}_scripts
+  shared:
 
 networks:
   opstack:
@@ -57,6 +58,7 @@ services:
     volumes:
       - ${DATABASE_PATH:-data}:/data
       - ${SCRIPTS_PATH:-scripts}:/scripts
+      - shared:/shared
 
   op-reth:
     profiles: ["reth"]
@@ -138,6 +140,7 @@ services:
     volumes:
       - ${DATABASE_PATH:-data}:/data
       - ${SCRIPTS_PATH:-scripts}:/scripts
+      - shared:/shared
     shm_size: 2gb
 
   # l2geth:
@@ -187,5 +190,6 @@ services:
     volumes:
       - ${DATABASE_PATH:-data}:/data
       - ${SCRIPTS_PATH:-scripts}:/scripts
+      - shared:/shared
     networks:
       - opstack
