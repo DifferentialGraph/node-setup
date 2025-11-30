@@ -3,7 +3,7 @@ set -eu
 
 ADDITIONAL_ARGS=""
 
-if [ $CHAIN == "base" ]; then
+if [ $OPSTACK_CHAIN == "base" ]; then
     BINARY="./base-reth-node"
 
     # Enable Flashblocks support if websocket URL is provided
@@ -11,11 +11,11 @@ if [ $CHAIN == "base" ]; then
         ADDITIONAL_ARGS="--websocket-url=wss://mainnet.flashblocks.base.org/ws"
     fi
 
-    export OP_SEQUENCER_HTTP=https://mainnet-sequencer.base.org
-elif [ $CHAIN == "optimism" ]; then
+    ADDITIONAL_ARGS="${ADDITIONAL_ARGS:-} --rollup.sequencer-http=https://mainnet-sequencer.base.org"
+elif [ $OPSTACK_CHAIN == "optimism" ]; then
     BINARY="op-reth"
 
-    export OP_SEQUENCER_HTTP=https://mainnet-sequencer.optimism.io
+    ADDITIONAL_ARGS="${ADDITIONAL_ARGS:-} --rollup.sequencer-http=https://mainnet-sequencer.optimism.io"
 else
     echo "expected base or optimism" 1>&2
     exit 1

@@ -3,17 +3,17 @@ set -eu
 
 ADDITIONAL_ARGS=""
 
-if [ $CHAIN == "optimism" ]; then
+if [ $OPSTACK_CHAIN == "optimism" ]; then
     export OP_NODE_NETWORK=op-mainnet
 
-    # Wait for the Bedrock flag for this network to be set.
-    echo "Waiting for Bedrock node to initialize..."
-    while [ ! -f /shared/initialized.txt ]; do
-      sleep 1
-    done
+    ## Wait for the Bedrock flag for this network to be set.
+    #echo "Waiting for Bedrock node to initialize..."
+    #while [ ! -f /shared/initialized.txt ]; do
+    #  sleep 1
+    #done
 
-    export ADDITIONAL_ARGS="${ADDITIONAL_ARGS:-} --network=$NETWORK_NAME --rollup.load-protocol-versions=true --rollup.halt=major"
-elif [ $CHAIN == "base" ]; then
+    #export ADDITIONAL_ARGS="${ADDITIONAL_ARGS:-} --rollup.load-protocol-versions=true --rollup.halt=major"
+elif [ $OPSTACK_CHAIN == "base" ]; then
     export OP_NODE_NETWORK=base-mainnet
 
     get_public_ip() {
@@ -36,7 +36,6 @@ elif [ $CHAIN == "base" ]; then
       done
       return 1
     }
-
 
     # wait until local execution client comes up (authed so will return 401 without token)
     until [ "$(curl -s --max-time 10 --connect-timeout 5 -w '%{http_code}' -o /dev/null "${OP_NODE_L2_ENGINE_RPC/ws/http}")" -eq 401 ]; do

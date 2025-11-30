@@ -82,6 +82,12 @@ node-monitor() {
             tmux rename-window -t 0 'scroll-log' && tmux send-keys -t 'scroll-log' "docker logs ${PROJECT_NAME} --tail 10 -f | pino-pretty -c -t" C-m
             tmux new-window -t ${PROJECT_NAME}:1 -n 'scroll-cli' && tmux send-keys -t 'scroll-cli' "docker exec -it ${PROJECT_NAME} sh" C-m
         ;;
+        "opstack")
+            tmux rename-window -t 0 'op-exec' && tmux send-keys -t 'op-exec' "docker logs ${PROJECT_NAME}-op-exec --tail 10 -f | pino-pretty -c -t" C-m
+            tmux new-window -t ${PROJECT_NAME}:1 -n 'op-node' && tmux send-keys -t 'op-node' "docker logs ${PROJECT_NAME}-op-node --tail 10 -f | pino-pretty -c -t" C-m
+            #tmux new-window -t ${PROJECT_NAME}:2 -n 'bedrock-init' && tmux send-keys -t 'bedrock-init' "docker logs ${PROJECT_NAME}-bedrock-init --tail 10 -f | pino-pretty -c -t" C-m
+            #tmux new-window -t ${PROJECT_NAME}:3 -n 'l2geth' && tmux send-keys -t 'l2geth' "docker logs ${PROJECT_NAME}-l2geth --tail 10 -f | pino-pretty -c -t" C-m
+        ;;
         *)
             tmux kill-session -t ${PROJECT_NAME}
             echo "Chain not supported!"

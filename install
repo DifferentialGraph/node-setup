@@ -133,9 +133,10 @@ node-start() { # 1. chain id 2. node name 3. env path
             ;;
         "scroll")
             [ -z $DATABASE_PATH ] && ! volume-exists ${PROJECT_NAME}_data && docker volume create ${PROJECT_NAME}_data
+            ;;
         "opstack")
             [ -z $SCRIPTS_PATH ] && ! volume-exists ${PROJECT_NAME}_scripts && docker volume create ${PROJECT_NAME}_scripts
-            cp $NODEDIR/opstack/scripts/* ${SCRIPTS_PATH:-/var/lib/docker/volumes/${PROJECT_NAME}_config/_data}
+            cp $NODEDIR/opstack/scripts/* ${SCRIPTS_PATH:-/var/lib/docker/volumes/${PROJECT_NAME}_scripts/_data/}
 
             [ -z $DATABASE_PATH ] && ! volume-exists ${PROJECT_NAME}_data && docker volume create ${PROJECT_NAME}_data
 
@@ -171,6 +172,12 @@ node-start() { # 1. chain id 2. node name 3. env path
                 nets=$(docker container inspect --format '{{range $net,$v := .NetworkSettings.Networks}}{{printf "%s\n" $net}}{{end}}' ${PROJECT_NAME}-l2geth)
                 [[ ! ${nets[@]} =~ "$MAINNET_LOCAL_NETWORK" ]] && docker network connect $MAINNET_LOCAL_NETWORK ${PROJECT_NAME}-l2geth
             ;;
+            "opstack")
+                nets=$(docker container inspect --format '{{range $net,$v := .NetworkSettings.Networks}}{{printf "%s\n" $net}}{{end}}' ${PROJECT_NAME}-op-node)
+                [[ ! ${nets[@]} =~ "$MAINNET_LOCAL_NETWORK" ]] && docker network connect $MAINNET_LOCAL_NETWORK ${PROJECT_NAME}-op-node
+                #nets=$(docker container inspect --format '{{range $net,$v := .NetworkSettings.Networks}}{{printf "%s\n" $net}}{{end}}' ${PROJECT_NAME}-l2geth)
+                #[[ ! ${nets[@]} =~ "$MAINNET_LOCAL_NETWORK" ]] && docker network connect $MAINNET_LOCAL_NETWORK ${PROJECT_NAME}-l2geth
+            ;;
             "base")
                 nets=$(docker container inspect --format '{{range $net,$v := .NetworkSettings.Networks}}{{printf "%s\n" $net}}{{end}}' ${PROJECT_NAME}-execution)
                 [[ ! ${nets[@]} =~ "$MAINNET_LOCAL_NETWORK" ]] && docker network connect $MAINNET_LOCAL_NETWORK ${PROJECT_NAME}-execution
@@ -197,6 +204,9 @@ node-start() { # 1. chain id 2. node name 3. env path
             ;;
             "optimism")
                 container=${PROJECT_NAME}-op-geth
+            ;;
+            "opstack")
+                container=${PROJECT_NAME}-op-exec
             ;;
             "base")
                 container=${PROJECT_NAME}-execution
