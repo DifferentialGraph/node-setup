@@ -129,6 +129,8 @@ node-start() { # 1. chain id 2. node name 3. env path
             envsubst < $NODEDIR/linea/maru/maru-config.toml > ${CONFIG_PATH}/maru/maru-config.toml
             cp $NODEDIR/linea/${CLIENT}/${CLIENT}-genesis.json ${CONFIG_PATH}/${CLIENT}/${CLIENT}-genesis.json
             cp $NODEDIR/linea/engine-jwt ${CONFIG_PATH}/engine-jwt
+
+            PROFILES=$CLIENT
             ;;
         "scroll")
             [ -z $DATABASE_PATH ] && ! volume-exists ${PROJECT_NAME}_data && docker volume create ${PROJECT_NAME}_data
@@ -186,6 +188,12 @@ node-start() { # 1. chain id 2. node name 3. env path
             "matic")
                 nets=$(docker container inspect --format '{{range $net,$v := .NetworkSettings.Networks}}{{printf "%s\n" $net}}{{end}}' ${PROJECT_NAME}-heimdalld)
                 [[ ! ${nets[@]} =~ "$MAINNET_LOCAL_NETWORK" ]] && docker network connect $MAINNET_LOCAL_NETWORK ${PROJECT_NAME}-heimdalld
+            ;;
+            "linea")
+                nets=$(docker container inspect --format '{{range $net,$v := .NetworkSettings.Networks}}{{printf "%s\n" $net}}{{end}}' ${PROJECT_NAME})
+                [[ ! ${nets[@]} =~ "$MAINNET_LOCAL_NETWORK" ]] && docker network connect $MAINNET_LOCAL_NETWORK ${PROJECT_NAME}
+                nets=$(docker container inspect --format '{{range $net,$v := .NetworkSettings.Networks}}{{printf "%s\n" $net}}{{end}}' ${PROJECT_NAME}-maru)
+                [[ ! ${nets[@]} =~ "$MAINNET_LOCAL_NETWORK" ]] && docker network connect $MAINNET_LOCAL_NETWORK ${PROJECT_NAME}-maru
             ;;
             *)
                 nets=$(docker container inspect --format '{{range $net,$v := .NetworkSettings.Networks}}{{printf "%s\n" $net}}{{end}}' ${PROJECT_NAME})
