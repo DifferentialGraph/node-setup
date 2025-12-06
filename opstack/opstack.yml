@@ -177,7 +177,7 @@ services:
   #   networks:
   #     - opstack
 
-  bedrock-init:
+  bedrock:
     profiles: ["optimism"]
     build:
       context: ./dockerfiles

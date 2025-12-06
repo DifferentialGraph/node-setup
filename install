@@ -1,6 +1,6 @@
 #!/bin/bash -i
-NODEDIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-. $NODEDIR/utils/docker
+[ -z $NODEDIR ] && NODEDIR="$(cd "$(dirname "${BASH_SOURCE[0]:-${(%):-%x}}")" && pwd)"
+source $NODEDIR/utils/docker
 
 basics-install() {
     apt update
