@@ -29,7 +29,6 @@ services:
         - JAVA_OPTS=-Xmx2g
       volumes:
         - ${CONFIG_PATH}/maru/maru-config.toml:/opt/consensys/maru/configs/maru-config.toml:ro
-        - ${CONFIG_PATH}/maru/maru-genesis.json:/opt/consensys/maru/configs/maru-genesis.json:ro
         - ${CONFIG_PATH}/maru/log4j.xml:/opt/consensys/maru/configs/log4j.xml:ro
         - ${CONFIG_PATH}/engine-jwt:/opt/consensys/maru/configs/jwt:ro
         - ${DATABASE_CL_PATH:-maru-data}:/opt/maru
@@ -38,8 +37,8 @@ services:
         - "-Dlog4j2.configurationFile=/opt/consensys/maru/configs/log4j.xml"
         - "-jar"
         - "/opt/consensys/maru/maru.jar"
-        - "--maru-genesis-file"
-        - "/opt/consensys/maru/configs/maru-genesis.json"
+        - "--network"
+        - "linea-mainnet"
         - "--config"
         - "/opt/consensys/maru/configs/maru-config.toml"
       networks:
@@ -47,7 +46,7 @@ services:
 
   geth-init:
     profiles: ["geth"]
-    image: ethereum/client-go:${GETH_TAG:-v1.16.5} # v1.13.15
+    image: ethereum/client-go:${GETH_TAG:-v1.16.7}
     container_name: ${COMPOSE_PROJECT_NAME}-init
     command:
       - init
@@ -61,7 +60,7 @@ services:
   geth-node:
     profiles: ["geth"]
     # hostname: el-client
-    image: ethereum/client-go:${GETH_TAG:-v1.16.5} # v1.13.15
+    image: ethereum/client-go:${GETH_TAG:-v1.16.7}
     container_name: ${COMPOSE_PROJECT_NAME}
     pull_policy: always
     restart: unless-stopped
