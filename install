@@ -126,7 +126,9 @@ node-start() { # 1. chain id 2. node name 3. env path
             [ -d "${CONFIG_PATH}/maru" ] || mkdir "${CONFIG_PATH}/maru"
 
             cp $NODEDIR/linea/maru/log4j.xml ${CONFIG_PATH}/maru/log4j.xml
+            export MAINNET_RPC_EXECUTION
             envsubst < $NODEDIR/linea/maru/maru-config.toml > ${CONFIG_PATH}/maru/maru-config.toml
+            unset MAINNET_RPC_EXECUTION
             cp $NODEDIR/linea/${CLIENT}/${CLIENT}-genesis.json ${CONFIG_PATH}/${CLIENT}/${CLIENT}-genesis.json
             cp $NODEDIR/linea/engine-jwt ${CONFIG_PATH}/engine-jwt
 
