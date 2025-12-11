@@ -13,11 +13,11 @@ if [ $OPSTACK_CHAIN == "base" ]; then
 
     ADDITIONAL_ARGS="${ADDITIONAL_ARGS:-} --rollup.sequencer-http=https://mainnet-sequencer.base.org"
 elif [ $OPSTACK_CHAIN == "optimism" ]; then
-    # Wait for the Bedrock flag for this network to be set.
-    echo "Waiting for Bedrock node to initialize..."
-    while [ ! -f /shared/initialized.txt ]; do
-      sleep 1
-    done
+    # # Wait for the Bedrock flag for this network to be set.
+    # echo "Waiting for Bedrock node to initialize..."
+    # while [ ! -f /shared/initialized.txt ]; do
+    #   sleep 1
+    # done
 
     BINARY="op-reth"
 

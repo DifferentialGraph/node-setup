@@ -13,7 +13,7 @@ networks:
 
 services:
   op-node:
-    image: us-docker.pkg.dev/oplabs-tools-artifacts/images/op-node:${OP_NODE_TAG:-latest}
+    image: us-docker.pkg.dev/oplabs-tools-artifacts/images/op-node:${OPNODE_TAG:-latest}
     container_name: ${COMPOSE_PROJECT_NAME}-op-node
     ports:
       - 9222:9222     # P2P TCP
@@ -30,11 +30,11 @@ services:
       - OP_NODE_L1_ETH_RPC=${L1_RPC_EXECUTION}
       - OP_NODE_L1_BEACON=${L1_RPC_CONSENSUS}
       - OP_NODE_L1_BEACON_ARCHIVER=${L1_RPC_CONSENSUS}
-      - OP_NODE_L1_BEACON_FETCH_ALL_SIDECARS="true"
+      # - OP_NODE_L1_BEACON_FETCH_ALL_SIDECARS="true"
       - OP_NODE_L1_RPC_KIND=${L1_RPC_KIND:-debug_geth}
       - OP_NODE_L1_TRUST_RPC=${L1_RPC_TRUST:-false}
       - OP_NODE_L2_ENGINE_KIND=${CLIENT}
-      - OP_NODE_L2_ENGINE_RPC=http://${COMPOSE_PROJECT_NAME}-op-${CLIENT}:8551 # ws://${COMPOSE_PROJECT_NAME}-op-${CLIENT}:8551
+      - OP_NODE_L2_ENGINE_RPC=http://${COMPOSE_PROJECT_NAME}-op-exec:8551 # ws://${COMPOSE_PROJECT_NAME}-op-${CLIENT}:8551
       - OP_NODE_L2_ENGINE_AUTH=/tmp/engine-auth-jwt
       # - OP_NODE_L2_SKIP_SYNC_START_CHECK=true
       - OP_NODE_LOG_LEVEL=info
@@ -62,7 +62,7 @@ services:
 
   op-reth:
     profiles: ["reth"]
-    image: ghcr.io/paradigmxyz/op-reth:${OP_RETH_TAG:-latest}
+    image: ghcr.io/paradigmxyz/op-reth:${RETH_TAG:-latest}
     container_name: ${COMPOSE_PROJECT_NAME}-op-exec
     sysctls:
       net.ipv4.tcp_slow_start_after_idle: 0       # Disable slow start after idle
@@ -177,19 +177,19 @@ services:
   #   networks:
   #     - opstack
 
-  bedrock:
-    profiles: ["optimism"]
-    build:
-      context: ./dockerfiles
-      dockerfile: Dockerfile.bedrock-init
-    container_name: ${COMPOSE_PROJECT_NAME}-bedrock
-    entrypoint: /scripts/bedrock.sh
-    environment:
-      OPSTACK_CHAIN: ${CHAIN}
-      NODE_TYPE: ${NODE_TYPE}
-    volumes:
-      - ${DATABASE_PATH:-data}:/data
-      - ${SCRIPTS_PATH:-scripts}:/scripts
-      - shared:/shared
-    networks:
-      - opstack
+  # bedrock:
+  #   profiles: ["optimism"]
+  #   build:
+  #     context: ./dockerfiles
+  #     dockerfile: Dockerfile.bedrock-init
+  #   container_name: ${COMPOSE_PROJECT_NAME}-bedrock
+  #   entrypoint: /scripts/bedrock.sh
+  #   environment:
+  #     OPSTACK_CHAIN: ${CHAIN}
+  #     NODE_TYPE: ${NODE_TYPE}
+  #   volumes:
+  #     - ${DATABASE_PATH:-data}:/data
+  #     - ${SCRIPTS_PATH:-scripts}:/scripts
+  #     - shared:/shared
+  #   networks:
+  #     - opstack
