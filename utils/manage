@@ -1,5 +1,5 @@
 #!/bin/bash
-. $NODE_DIR/install --source
+source $NODEDIR/install --source
 
 node-stop() { # 1. chain id 2. node name 3. env path
     [ -z "$1" ] && { echo "Error: provide chain id"; return 1; }

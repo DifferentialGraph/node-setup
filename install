@@ -83,16 +83,16 @@ node-start() { # 1. chain id 2. node name 3. env path
             ;;
         "avalanche")
             [ -z $CONFIG_PATH ] && ! volume-exists ${PROJECT_NAME}_config && docker volume create ${PROJECT_NAME}_config
-            cp $NODE_DIR/avalanche/node.json ${CONFIG_PATH:-/var/lib/docker/volumes/${PROJECT_NAME}_config/_data/}
+            cp $NODEDIR/avalanche/node.json ${CONFIG_PATH:-/var/lib/docker/volumes/${PROJECT_NAME}_config/_data/}
 
             [ -z $CCONFIG_PATH ] && ! volume-exists ${PROJECT_NAME}_c-config && docker volume create ${PROJECT_NAME}_c-config
-            cp $NODE_DIR/avalanche/config.json ${CCONFIG_PATH:-/var/lib/docker/volumes/${PROJECT_NAME}_c-config/_data/}
+            cp $NODEDIR/avalanche/config.json ${CCONFIG_PATH:-/var/lib/docker/volumes/${PROJECT_NAME}_c-config/_data/}
 
             [ -z $DATABASE_PATH ] && ! volume-exists ${PROJECT_NAME}_data && docker volume create ${PROJECT_NAME}_data
             ;;
         "optimism")
             [ -z $SCRIPTS_PATH ] && ! volume-exists ${PROJECT_NAME}_scripts && docker volume create ${PROJECT_NAME}_scripts
-            cp $NODE_DIR/optimism/scripts/* ${SCRIPTS_PATH:-/var/lib/docker/volumes/${PROJECT_NAME}_scripts/_data/}
+            cp $NODEDIR/optimism/scripts/* ${SCRIPTS_PATH:-/var/lib/docker/volumes/${PROJECT_NAME}_scripts/_data/}
 
             [ -z $CONFIG_PATH ] && ! volume-exists ${PROJECT_NAME}_config && docker volume create ${PROJECT_NAME}_config
             [ -z $SHARED_PATH ] && ! volume-exists ${PROJECT_NAME}_shared && docker volume create ${PROJECT_NAME}_shared
@@ -279,8 +279,8 @@ if [ "${1}" != "--source" ]; then
         echo "Modifying .bashrc ..."
         echo -e "\n" >> ~/.bashrc
         echo "#node-setup" >> ~/.bashrc
-        echo "export NODE_DIR=$NODEDIR" >> ~/.bashrc
-        echo 'source $NODE_DIR/utils/manage' >> ~/.bashrc
+        echo "export NODEDIR=$NODEDIR" >> ~/.bashrc
+        echo 'source $NODEDIR/utils/manage' >> ~/.bashrc
         source ~/.bashrc
     fi
 fi
