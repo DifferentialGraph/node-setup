@@ -78,8 +78,8 @@ services:
       memlock: -1        # Disable memory locking limits (for in-memory DBs like MDBX)
     user: root
     ports:
-      - ${PORT_P2P:-30333}:30303           # P2P TCP
-      - ${PORT_P2P:-30333}:30303/udp       # P2P UDP
+      - ${PORT_P2P:-30353}:30303           # P2P TCP
+      - ${PORT_P2P:-30353}:30303/udp       # P2P UDP
     expose:
       - 8545       # http
       - 8546       # websocket
