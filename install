@@ -138,10 +138,12 @@ node-start() { # 1. chain id 2. node name 3. env path
             [ -z $DATABASE_PATH ] && ! volume-exists ${PROJECT_NAME}_data && docker volume create ${PROJECT_NAME}_data
             ;;
         "opstack")
+            [ -z $DATABASE_PATH ] && ! volume-exists ${PROJECT_NAME}_data && docker volume create ${PROJECT_NAME}_data
+
             [ -z $SCRIPTS_PATH ] && ! volume-exists ${PROJECT_NAME}_scripts && docker volume create ${PROJECT_NAME}_scripts
             cp $NODEDIR/opstack/scripts/* ${SCRIPTS_PATH:-/var/lib/docker/volumes/${PROJECT_NAME}_scripts/_data/}
 
-            [ -z $DATABASE_PATH ] && ! volume-exists ${PROJECT_NAME}_data && docker volume create ${PROJECT_NAME}_data
+            # [ -z $SHARED_PATH ] && ! volume-exists ${PROJECT_NAME}_shared && docker volume create ${PROJECT_NAME}_shared
 
             PROFILES=($CHAIN $CLIENT)
             ;;

@@ -124,9 +124,9 @@ services:
       # - --rpc.max-logs-per-response=0
     environment:
       OPSTACK_CHAIN: ${CHAIN}
-      LETSENCRYPT_HOST: ${SUBDOMAIN:-optimism}.${HOST}
+      LETSENCRYPT_HOST: ${SUBDOMAIN:-opstack}.${HOST}
       VIRTUAL_HOST_MULTIPORTS: |-
-        ${SUBDOMAIN:-base}.${HOST}:
+        ${SUBDOMAIN:-opstack}.${HOST}:
           "/":
             port: 8545
             dest: "/"
