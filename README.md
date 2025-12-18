@@ -1,5 +1,7 @@
 # Node Setup
 Automatically setup blockchains full/archive node.
+- https://publicnode.com/snapshots
+- https://services.stakecraft.com/docs/snapshots/polygon-snapshot
 
 ### Installation
 ```sh
@@ -70,6 +72,10 @@ curl -H "Content-Type: application/json" -X POST --data '{"jsonrpc":"2.0","metho
 | -              | 6061  |    TCP    | Pprof                       |
 
 ## Polygon - `matic`
+- https://docs.polygon.technology/pos/how-to/snapshots/
+- https://github.com/0xPolygon/erigon
+- https://github.com/0xPolygon/erigon/issues/81
+- https://github.com/0xPolygon/heimdall-v2
 
 ### ports configuration
 | Host           | Port  | Protocol  | Purpose                     |
@@ -106,6 +112,7 @@ curl -H "Content-Type: application/json" -X POST --data '{"jsonrpc":"2.0","metho
 | -                           | 9651  |    TCP    | WebSockets                  |
 
 ## Optimism - `optimism`
+- https://github.com/smartcontracts/simple-optimism-node/blob/main/scripts/init-bedrock.sh
 
 ### ports configuration
 | Host           | Port  | Protocol  | Purpose                     |
@@ -119,6 +126,9 @@ curl -H "Content-Type: application/json" -X POST --data '{"jsonrpc":"2.0","metho
 | 127.0.0.1:9545 | 9545  |    TCP	 | op-node http                |
 
 ## Base - `base`
+- https://reth.rs/run/faq/sync-op-mainnet/
+- https://docs.base.org/base-chain/node-operators/snapshots
+- https://github.com/base/node/tree/main
 
 ### ports configuration
 | Host           | Port  | Protocol  | Purpose                     |
@@ -129,6 +139,8 @@ curl -H "Content-Type: application/json" -X POST --data '{"jsonrpc":"2.0","metho
 | -              | 6060  |    TCP    | Metrics                     |
 
 ## Linea - `linea`
+- https://docs.linea.build/get-started/how-to/run-a-node/maru
+- https://github.com/Consensys/linea-monorepo/tree/main/docs/getting-started/linea-mainnet
 
 ### ports configuration
 | Host           | Port  | Protocol  | Purpose                     |
