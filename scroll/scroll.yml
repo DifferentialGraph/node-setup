@@ -9,7 +9,7 @@ networks:
 
 services:
   scroll-mainnet:
-    image: scrolltech/l2geth:${SCROLL_TAG:-scroll-v5.10.1}
+    image: scrolltech/l2geth:scroll-${SCROLL_TAG:-latest}
     container_name: ${COMPOSE_PROJECT_NAME}
     sysctls:
       net.ipv4.tcp_slow_start_after_idle: 0
