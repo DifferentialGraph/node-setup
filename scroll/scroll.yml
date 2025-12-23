@@ -9,9 +9,19 @@ networks:
 
 services:
   scroll-mainnet:
-    image: scrolltech/l2geth:${SCROLL_TAG:-scroll-v5.8.38}
+    image: scrolltech/l2geth:${SCROLL_TAG:-scroll-v5.10.1}
     container_name: ${COMPOSE_PROJECT_NAME}
-    expose: 
+    sysctls:
+      net.ipv4.tcp_slow_start_after_idle: 0
+      net.ipv4.tcp_no_metrics_save: 1
+      net.ipv4.tcp_rmem: 4096 87380 16777216
+      net.ipv4.tcp_wmem: 4096 87380 16777216
+      net.core.somaxconn: 32768
+      net.ipv4.tcp_max_syn_backlog: 30000
+      net.ipv4.tcp_max_tw_buckets: 2000000
+    ulimits:
+      nofile: 1048576 
+    expose:
       - 8545 # HTTP server / GraphQL API 
     ports:
       - ${PORT_P2P:-38907}:38907
@@ -21,38 +31,44 @@ services:
         "--scroll",
         "--scroll-mpt",
         "--syncmode=full",
+        "--datadir=/root/.ethereum",
         "--gcmode=${NODE_TYPE:-full}",
         "--cache.noprefetch",
+        "--cache.snapshot=0",
+        "--cache=8192",
         "--port=38907",
         "--ws",
         "--ws.port=8545",
         "--ws.addr=0.0.0.0",
         "--ws.origins=*",
-        "--ws.api=eth,net,web3,debug,scroll",
+        "--ws.api=eth,net,web3,admin,debug",
         "--http",
         "--http.port=8545",
         "--http.addr=0.0.0.0",
         "--http.vhosts=*",
         "--http.corsdomain=*",
-        "--http.api=eth,net,web3,debug,scroll",
+        "--http.api=eth,net,web3,admin,debug",
         "--metrics",
         "--metrics.addr=0.0.0.0",
         "--metrics.port=6060",
-        "--l1.endpoint=${SCROLL_L1_ENDPOINT}",
+        "--l1.endpoint=${MAINNET_RPC_EXECUTION}",
         "--da.sync",
-        "--da.blob.beaconnode=${SCROLL_L1_BEACON}",
+        "--da.blob.awss3=https://scroll-mainnet-blob-data.s3.us-west-2.amazonaws.com",
+        "--da.blob.beaconnode=${MAINNET_RPC_CONSENSUS}",
         "--da.blob.blobscan=https://api.blobscan.com/blobs/",
         "--da.blob.blocknative=https://api.ethernow.xyz/v1/blob/",
         "--rollup.verify",
-        "--cache.snapshot=0",
         "--snapshot=false",
         "--txlookuplimit=0",
-        # "--maxpeers=100",
-        # "--gpo.ignoreprice=1",
+        "--maxpeers=50",
+        "--gpo.ignoreprice=1",
+        "--gpo.maxprice=500000000",
+        "--gossip.sequencerhttp=https://mainnet-sequencer-proxy.scroll.io",
+        "--rpc.gascap=600000000",
+        "--rpc.txfeecap=0",
         # "--graphql",
         # "--graphql.vhosts=*",
         # "--nat=extip:0.0.0.0", # megabytes of memory allocated to internal caching
-        # "--cache=8192",
       ]
     networks:
       - scroll
