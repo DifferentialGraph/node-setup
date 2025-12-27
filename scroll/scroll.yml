@@ -23,6 +23,8 @@ services:
       nofile: 1048576 
     expose:
       - 8545 # HTTP server / GraphQL API 
+      - 8546
+      - 6060
     ports:
       - ${PORT_P2P:-38907}:38907
       - ${PORT_P2P:-38907}:38907/udp
@@ -47,7 +49,7 @@ services:
         "--http.addr=0.0.0.0",
         "--http.vhosts=*",
         "--http.corsdomain=*",
-        "--http.api=eth,net,web3,admin,debug",
+        "--http.api=eth,net,web3,debug,scroll",
         "--metrics",
         "--metrics.addr=0.0.0.0",
         "--metrics.port=6060",
@@ -74,8 +76,9 @@ services:
       - scroll
     volumes:
       - ${DATABASE_PATH:-data}:/root/.ethereum
+    stop_signal: SIGINT
+    stop_grace_period: 60s
     restart: unless-stopped
-    stop_grace_period: 5m
     environment:
       RUST_LOG: info
       CHAIN_ID: 534352
