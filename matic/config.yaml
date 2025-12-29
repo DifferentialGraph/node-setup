@@ -6,7 +6,7 @@ ethash.dagdir: /home/erigon/.local/share/erigon/ethash
 prune.mode: archive
 
 externalcl: true
-bor.heimdall: https://polygon-heimdall-rest.publicnode.com # http://matic-n3-heimdalld:1317
+bor.heimdall: http://${PROJECT_NAME}-heimdalld:1317
 
 batchSize: 1G
 

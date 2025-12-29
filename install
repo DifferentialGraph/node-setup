@@ -76,7 +76,9 @@ node-start() { # 1. chain id 2. node name 3. env path
             ;;
         "matic")
             [ -z $CONFIG_PATH ] && ! volume-exists ${PROJECT_NAME}_config && docker volume create ${PROJECT_NAME}_config
-            cp $NODEDIR/matic/config.yaml ${CONFIG_PATH:-/var/lib/docker/volumes/${PROJECT_NAME}_config/_data}/config.yaml
+            export PROJECT_NAME
+            envsubst < $NODEDIR/matic/config.yaml > ${CONFIG_PATH:-/var/lib/docker/volumes/${PROJECT_NAME}_config/_data}/config.yaml
+            export PROJECT_NAME
 
             [ -z $DATABASE_PATH ] && ! volume-exists ${PROJECT_NAME}_data && docker volume create ${PROJECT_NAME}_data
 

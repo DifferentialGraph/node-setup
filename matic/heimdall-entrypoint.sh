@@ -3,9 +3,6 @@
 # exit script on any error
 set -e
 
-# Set Heimdall Home Directory
-HEIMDALL_HOME=/root/.heimdall
-
 if [ ! -f "$HEIMDALL_HOME/config/config.toml" ];
 then
     echo "setting up initial configurations"
@@ -35,4 +32,4 @@ fi
 #   wget -c "${SNAPSHOT_URL}" -O - | tar -xz -C ${HEIMDALLD_HOME}/data && touch ${HEIMDALLD_HOME}/bootstrapped
 # fi
 
-exec heimdalld --home="$HEIMDALL_HOME" "$@"
+exec heimdalld "$@"
