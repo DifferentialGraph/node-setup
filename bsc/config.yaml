@@ -1,0 +1,81 @@
+chain: bsc
+
+datadir: /home/erigon/.local/share/erigon
+
+prune.mode: archive
+
+batchSize: 1G
+
+# eth/66 peering
+port: 30303
+
+# download
+torrent.port: 42069
+torrent.download.rate: 1250mb
+torrent.upload.rate: 1250mb
+
+# gRPC Server
+private.api.addr: 0.0.0.0:9090 # for modular components connections
+
+# Engine API (JWT auth)
+authrpc.port: 8551 # for consensus layer communication
+authrpc.addr: 0.0.0.0
+authrpc.jwtsecret: /home/erigon/.local/share/erigon/jwt.hex
+authrpc.vhosts: "*"
+
+# HTTP & WebSockets & GraphQL
+http: true
+http.port: 8545
+http.addr: 0.0.0.0
+http.vhosts: "*"
+http.corsdomain: "*"
+http.api: [eth, erigon, web3, debug, net, trace, txpool, admin, ots]
+# http.compression : true
+
+ws: true
+# ws.port: 8546
+# ws.compression: true
+
+# rpc.accessList : rules.json
+rpc.evmtimeout: '5m0s'
+rpc.gascap: 6000000000
+rpc.overlay.getlogstimeout: '5m0s'
+rpc.overlay.replayblocktimeout: '10s'
+rpc.returndata.limit: 10000000
+
+# metric
+metrics : true
+metrics.addr: 0.0.0.0
+metrics.port: 6060
+
+# pprof
+pprof: false
+pprof.addr: 0.0.0.0
+pprof.port: 6061
+
+# beacon api
+externalcl: false
+
+#caplin.discovery.addr: 0.0.0.0
+#caplin.discovery.port: 16675
+#caplin.discovery.tcpport: 16675
+caplin.states-archive: true
+caplin.blobs-archive: true
+caplin.blocks-archive: true
+caplin.blobs-immediate-backfill: true
+caplin.blobs-no-pruning: true
+
+beacon.api: [beacon, builder, config, debug, node, validator, lighthouse]
+beacon.api.port: 5555
+beacon.api.addr: 0.0.0.0
+beacon.api.cors.allow-origins: "*"
+# beacon.api.cors.allow-credentials: true
+
+nat: stun
+
+# no-downloader: true
+# log.console.verbosity: 3
+# snapshots: true
+# snap.keepblocks: true
+# db.size.limit: '8TB'
+# sync.loop.block.limit: 5_000

@@ -1,0 +1,6 @@
+{
+    "allow": [
+        "net_version",
+        "web3_eth_getBlockByHash"
+    ]
+}

@@ -1,0 +1,110 @@
+volumes:
+  config:
+    external: true
+    name: ${COMPOSE_PROJECT_NAME}_config
+  data:
+    external: true
+    name: ${COMPOSE_PROJECT_NAME}_data
+
+networks:
+  bsc:
+    name: ${COMPOSE_PROJECT_NAME}
+
+x-settings: &settings
+  container_name: ${COMPOSE_PROJECT_NAME}
+  sysctls:
+    net.ipv4.tcp_slow_start_after_idle: 0
+    net.ipv4.tcp_no_metrics_save: 1
+    net.ipv4.tcp_rmem: 4096 87380 16777216
+    net.ipv4.tcp_wmem: 4096 87380 16777216
+    net.core.somaxconn: 32768
+    # net.core.netdev_max_backlog: 50000
+    net.ipv4.tcp_max_syn_backlog: 30000
+    net.ipv4.tcp_max_tw_buckets: 2000000
+  ulimits:
+    nofile: 1048576
+    memlock: -1
+  shm_size: 2gb
+  restart: unless-stopped
+  stop_grace_period: 1m
+  networks:
+    - bsc
+  environment:
+    VIRTUAL_HOST: ${SUBDOMAIN:-bsc}.${HOST}
+    VIRTUAL_PORT: 8545
+    LETSENCRYPT_HOST: ${SUBDOMAIN:-bsc}.${HOST}
+
+services:
+  bsc-erigon:
+    profiles: ["erigon"]
+    image: erigontech/erigon:${ERIGON_TAG:-latest}
+    user: ${ERIGON_UID:-1000}:${ERIGON_GID:-1000}
+    volumes:
+      - ${CONFIG_PATH:-config}:/home/erigon/.config
+      - ${DATABASE_PATH:-data}:/home/erigon/.local/share/erigon
+    ports:
+      - ${PORT_PEERING_66:-30393}:30303/tcp # eth/66 peering
+      - ${PORT_PEERING_66:-30393}:30303/udp # eth/66 peering
+      - ${PORT_PEERING_67:-30394}:30304/tcp # eth/67 peering
+      - ${PORT_PEERING_67:-30394}:30304/udp # eth/67 peering
+      - ${PORT_SNAP:-42099}:42069/tcp # snap sync
+      - ${PORT_SNAP:-42099}:42069/udp # snap sync
+      - ${PORT_SENTINEL_UDP:-4090}:4000/udp # sentinel peering (caplin)
+      - ${PORT_SENTINEL_TCP:-4091}:4001/tcp # sentinel peering (caplin)
+    expose:
+      - 9090/tcp # gRPC Server
+      - 8551/tcp # Engine API (JWT auth)
+      - 9091/tcp # incoming gRPC Connections
+      - 6060/tcp # metric
+      - 6061/tcp # pprof
+      - 5555/tcp # beaconAPI
+      - 8545/tcp # HTTP & WebSockets & GraphQL
+    command: >
+      --config /home/erigon/.config/config.yaml
+    <<: *settings
+
+  bsc-reth:
+    profiles: ["reth"]
+    image: ghcr.io/sentioxyz/reth-bsc:${RETH_TAG:-v0.0.6-beta}
+    ports:
+      - 13454:13454
+      - 13454:13454/udp
+    expose:
+      - 8545
+      - 9001
+    entrypoint: [reth, node]
+    command:
+      - --chain=bsc
+      - --datadir=/root/.local/share/reth
+      - --db.max-size=12TB
+      - --db.page-size=8KB
+      - --discovery.port=13454
+      - --engine.cross-block-cache-size=4096
+      - --engine.memory-block-buffer-target=128
+      - --engine.parallel-sparse-trie
+      - --gpo.maxprice=500000000
+      - --http
+      - --http.addr=0.0.0.0
+      - --http.api=admin,debug,eth,net,trace,txpool,web3,rpc,reth,ots,flashbots,mev
+      - --http.corsdomain=*
+      - --http.port=8545
+      - --max-inbound-peers=50
+      - --max-outbound-peers=50
+      - --metrics=0.0.0.0:9001
+      - --pooled-tx-response-soft-limit=20971520
+      - --port=13454
+      - --rpc-cache.max-blocks=10000
+      - --rpc-cache.max-concurrent-db-requests=2048
+      - --rpc.gascap=600000000
+      - --rpc.max-blocks-per-filter=0
+      - --rpc.max-connections=50000
+      - --rpc.max-logs-per-response=0
+      - --ws
+      - --ws.addr=0.0.0.0
+      - --ws.api=admin,debug,eth,net,trace,txpool,web3,rpc,reth,ots,flashbots,mev
+      - --ws.origins=*
+      - --ws.port=8545
+    volumes:
+      - ${CONFIG_PATH:-config}:/config
+      - ${DATABASE_PATH:-data}:/root/.local/share/reth
+    <<: *settings

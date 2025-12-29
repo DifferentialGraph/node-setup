@@ -66,6 +66,14 @@ node-start() { # 1. chain id 2. node name 3. env path
 
             [ -z $DATABASE_PATH ] && ! volume-exists ${PROJECT_NAME}_data && docker volume create ${PROJECT_NAME}_data
             ;;
+        "bsc")
+            [ -z $CONFIG_PATH ] && ! volume-exists ${PROJECT_NAME}_config && docker volume create ${PROJECT_NAME}_config
+            [ $CLIENT == "erigon" ] && cp $NODEDIR/bsc/config.yaml ${CONFIG_PATH:-/var/lib/docker/volumes/${PROJECT_NAME}_config/_data}/config.yaml
+
+            [ -z $DATABASE_PATH ] && ! volume-exists ${PROJECT_NAME}_data && docker volume create ${PROJECT_NAME}_data
+
+            PROFILES=$CLIENT
+            ;;
         "matic")
             [ -z $CONFIG_PATH ] && ! volume-exists ${PROJECT_NAME}_config && docker volume create ${PROJECT_NAME}_config
             cp $NODEDIR/matic/config.yaml ${CONFIG_PATH:-/var/lib/docker/volumes/${PROJECT_NAME}_config/_data}/config.yaml
