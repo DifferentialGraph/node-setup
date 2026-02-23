@@ -33,6 +33,7 @@ services:
     command: 
       [
         "/avalanchego/build/avalanchego",
+        "--config-file=/root/.avalanchego/configs/node.json",
         "--db-dir=/root/.avalanchego",
         # "--api-admin-enabled=true",
         "--http-host=",
