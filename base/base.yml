@@ -39,6 +39,9 @@ services:
           "/ws":
             port: 8546
             dest: "/"
+    env_file:
+          - ${ENV_FILE}
+
   node:
     build:
       context: .
@@ -59,4 +62,5 @@ services:
       - USE_BASE_CONSENSUS=${USE_BASE_CONSENSUS:-false}
     networks:
       - base
-
+    env_file:
+          - ${ENV_FILE}
