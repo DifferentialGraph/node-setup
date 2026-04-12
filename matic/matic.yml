@@ -66,43 +66,39 @@ services:
       VIRTUAL_PORT: 8545
       LETSENCRYPT_HOST: ${SUBDOMAIN:-matic}.${HOST}
 
+  rabbitmq:
+    container_name: ${COMPOSE_PROJECT_NAME}-rabbitmq
+    image: mirror.gcr.io/library/rabbitmq:3-alpine
+    expose:
+      - 5672 # RabbitMQ
+    restart: unless-stopped
+    networks:
+      - matic
+
   heimdalld:
     image: 0xpolygon/heimdall-v2:${HEIMDALL_TAG:-latest}
     container_name: ${COMPOSE_PROJECT_NAME}-heimdalld
     restart: unless-stopped
-    volumes:
-      - ${HEIMDALL_PATH:-heimdall}:/root/.heimdall
     environment:
       - HEIMDALL_ETH_RPC_URL=${ETH_RPC_URL}
+      - HEIMDALL_AMQP_URL=amqp://guest:guest@rabbitmq:5672
+    volumes:
+      - ${HEIMDALL_PATH:-heimdall}:/heimdall
     ports:
-      - 26656:26656 # P2P (TCP)
-    expose:
-      - 26657 # RPC (TCP)
-    entrypoint: /root/.heimdall/heimdall-entrypoint.sh
+      - "26656:26656" # P2P (TCP)
+      - "26657:26657" # RPC (TCP)
+      - "1317:1317"   # Heimdall REST API
+    depends_on:
+      - rabbitmq
     command:
       - start
-      - --home=/root/.heimdall
-      - --rest-server=false
+      - --p2p.laddr=tcp://0.0.0.0:26656
+      - --rpc.laddr=tcp://0.0.0.0:26657
+      - --rest-server
+      - --bridge
+      - --all
     networks:
       - matic
-
-  heimdallr:
-    image: 0xpolygon/heimdall-v2:${HEIMDALL_TAG:-latest}
-    container_name: ${COMPOSE_PROJECT_NAME}-heimdallr
-    restart: unless-stopped
-    environment:
-      - HEIMDALL_ETH_RPC_URL=${ETH_RPC_URL}
-    volumes:
-      - ${HEIMDALL_PATH:-heimdall}:/root/.heimdall
-    expose:
-      - 1317 # Heimdall REST API
-    depends_on:
-      - heimdalld
-    command:
-      - start
-      - --home=/root/.heimdall
-      - --rest-server=true
-      - --node=tcp://${COMPOSE_PROJECT_NAME}-heimdalld:26657
 
   prometheus:
     image: prom/prometheus:v2.51.2
