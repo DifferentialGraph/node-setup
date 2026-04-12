@@ -26,12 +26,10 @@ services:
     command: [ "bash", "./execution-entrypoint" ]
     volumes:
       - ${DATABASE_PATH:-data}:/data
-    env_file:
-      - base.env
     networks:
       - base
     environment:
-      NODE_TYPE: ${NODE_TYPE:-vanilla}
+      USE_BASE_CONSENSUS: ${USE_BASE_CONSENSUS:-false}
       LETSENCRYPT_HOST: ${SUBDOMAIN:-base}.${HOST}
       VIRTUAL_HOST_MULTIPORTS: |-
         ${SUBDOMAIN:-base}.${HOST}:
@@ -56,8 +54,9 @@ services:
       - 8545     # RPC
       - 7300     # metrics
       - 6060     # pprof
-    command: [ "bash", "./op-node-entrypoint" ]
-    env_file:
-      - base.env
+    command: ["bash", "./consensus-entrypoint"]
+    environment:
+      - USE_BASE_CONSENSUS=${USE_BASE_CONSENSUS:-false}
     networks:
       - base
+
