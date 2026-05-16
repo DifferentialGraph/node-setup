@@ -79,11 +79,16 @@ services:
     image: 0xpolygon/heimdall-v2:${HEIMDALL_TAG:-latest}
     container_name: ${COMPOSE_PROJECT_NAME}-heimdalld
     restart: unless-stopped
+    entrypoint:
+      - /var/lib/heimdall/heimdall-entrypoint.sh
     environment:
+      - HEIMDALL_DIR=/var/lib/heimdall
+      - MATIC_RPC_URL=${COMPOSE_PROJECT_NAME}:8545
       - HEIMDALL_ETH_RPC_URL=${ETH_RPC_URL}
       - HEIMDALL_AMQP_URL=amqp://guest:guest@${COMPOSE_PROJECT_NAME}-rabbitmq:5672
+      - ETH_RPC_URL=${ETH_RPC_URL}
     volumes:
-      - ${HEIMDALL_PATH:-heimdall}:/heimdall
+      - ${HEIMDALL_PATH:-heimdall}:/var/lib/heimdall
     ports:
       - "26656:26656" # P2P (TCP)
       - "26657:26657" # RPC (TCP)
