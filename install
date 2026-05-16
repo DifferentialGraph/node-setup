@@ -242,6 +242,16 @@ node-start() { # 1. chain id 2. node name 3. env path
             docker network connect reverse-proxy $container
         fi
 
+        case $CHAIN in
+            "matic")
+                grafana_container=${PROJECT_NAME}-grafana
+                grafana_nets=$(docker container inspect --format '{{range $net,$v := .NetworkSettings.Networks}}{{printf "%s\n" $net}}{{end}}' $grafana_container)
+                if [[ ! ${grafana_nets[@]} =~ "reverse-proxy" ]]; then
+                    docker network connect reverse-proxy $grafana_container
+                fi
+            ;;
+        esac
+
         VHOST_PATH=/var/lib/docker/volumes/reverse-proxy_vhost/_data
         [ -f "${VHOST_PATH}/${SUBDOMAIN:-${PROJECT_NAME}}.${HOST}" ] && rm ${VHOST_PATH}/${SUBDOMAIN:-${PROJECT_NAME}}.${HOST}
 
